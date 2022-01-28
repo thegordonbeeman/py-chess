@@ -8,7 +8,6 @@ from .piece import (
     Queen,
     Knight
 )
-#hehehehaw
 
 class Board:
 
