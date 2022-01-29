@@ -1,6 +1,6 @@
 import pygame as pg
 from typing import Union
-from .utils import pos_to_index, load_img, smoothscale_sq, index_to_pos
+from utils import pos_to_index, load_img, smoothscale_sq, index_to_pos
 
 
 class Piece:
@@ -44,7 +44,7 @@ class Bishop(Piece):
     def __init__(self, board_instance, position, color):
         super(Bishop, self).__init__("Bishop",
                                      position,
-                                     load_img("res/13.png") if color == "black" else load_img("res/23.png"),
+                                     load_img("../res/13.png") if color == "black" else load_img("../res/23.png"),
                                      color)
         self.board = board_instance
 
@@ -58,7 +58,7 @@ class Queen(Piece):
     def __init__(self, board_instance, position, color):
         super(Queen, self).__init__("Queen",
                                     position,
-                                    load_img("res/15.png") if color == "black" else load_img("res/25.png"),
+                                    load_img("../res/15.png") if color == "black" else load_img("../res/25.png"),
                                     color)
         self.board = board_instance
 
@@ -72,7 +72,7 @@ class King(Piece):
     def __init__(self, board_instance, position, color):
         super(King, self).__init__("King",
                                    position,
-                                   load_img("res/16.png") if color == "black" else load_img("res/26.png"),
+                                   load_img("../res/16.png") if color == "black" else load_img("../res/26.png"),
                                    color)
         self.board = board_instance
 
@@ -86,13 +86,22 @@ class Knight(Piece):
     def __init__(self, board_instance, position, color):
         super(Knight, self).__init__("Knight",
                                      position,
-                                     load_img("res/12.png") if color == "black" else load_img("res/22.png"),
+                                     load_img("../res/12.png") if color == "black" else load_img("../res/22.png"),
                                      color)
         self.board = board_instance
 
-    def generate_move_available(self):
-        pass
-        # TODO : fonction pour générer une liste de tous les moves
+    def generate_move_available(self) -> list[str]:
+        moves = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1)]
+        to_remove = []
+        for index in (indexes := [(self.index[0] + move[0], self.index[1] + move[1]) for move in moves]):
+            if index[0] > 7 or index[0] < 0 or index[1] < 0 or index[1] > 7:
+                to_remove.append(index)
+            elif not self.board.check_index_available(index):
+                if type(piece_on_index := self.board.get_piece(index)) is not int:
+                    if piece_on_index.color == self.color:
+                        to_remove.append(index)
+        _ = [indexes.remove(removing) for removing in to_remove]
+        return [*[index_to_pos(index) for index in indexes]]
 
 
 class Pawn(Piece):
@@ -100,7 +109,7 @@ class Pawn(Piece):
     def __init__(self, board_instance, position, color):
         super(Pawn, self).__init__("Pawn",
                                    position,
-                                   load_img("res/11.png") if color == "black" else load_img("res/21.png"),
+                                   load_img("../res/11.png") if color == "black" else load_img("../res/21.png"),
                                    color)
         self.board = board_instance
         self.first_move_done = False  # if the pawn hasn't moved once, then he can move "twice"
@@ -130,9 +139,7 @@ class Pawn(Piece):
             # check if there's a piece inside the "kill" move, if not, remove the move from the list
             if self.board.check_index_available(index) or index[0] > 7 or index[0] < 0 or index[1] < 0 or index[1] > 7:
                 to_remove.append(index)
-            else:
-                # check if the piece is on the wrong color
-                if type(piece_on_index := self.board.get_piece(index)) is not int:
+            elif type(piece_on_index := self.board.get_piece(index)) is not int:
                     if piece_on_index.color == self.color:
                         to_remove.append(index)
         _ = [kill_indexes.remove(removing) for removing in to_remove]
@@ -155,10 +162,6 @@ class Rook(Piece):
     def __init__(self, board_instance, position, color):
         super(Rook, self).__init__("Rook",
                                    position,
-                                   load_img("res/14.png") if color == "black" else load_img("res/24.png"),
+                                   load_img("../res/14.png") if color == "black" else load_img("../res/24.png"),
                                    color)
         self.board = board_instance
-
-    def generate_move_available(self):
-        pass
-        # TODO : fonction pour générer une liste de tous les moves
