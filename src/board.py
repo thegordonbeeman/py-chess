@@ -100,7 +100,6 @@ class Board:
                                         (self.tile_size, self.tile_size)) for index in self.targets]
                 for index, rect in enumerate(target_rects):
                     if rect.collidepoint(pos):
-                        print(rect, index, pos_to_index(self.targets[index]))
                         self.piece_selected.move(self.targets[index])
                         return self.next_turn()
                 self.selected = None
@@ -111,6 +110,7 @@ class Board:
 
     def update(self):
 
+        self.targets = []
         # update the board
         self.board = []
         all_indexes = [piece.index for piece in self.pieces]
