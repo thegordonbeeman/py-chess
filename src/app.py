@@ -28,7 +28,7 @@ class App:
 
                 if event.type == pg.MOUSEBUTTONDOWN:
                     if event.button == 1:
-                        self.board.select(event.pos)
+                        self.board.handle_clicks(event.pos)
 
             self.screen.fill((255, 255, 255))
             self.board.update()
