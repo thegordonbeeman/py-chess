@@ -1,8 +1,8 @@
 import pygame as pg
 from typing import Union
 
-from .utils import pos_to_index, index_to_pos
-from .piece import (
+from utils import pos_to_index, index_to_pos
+from piece import (
     Piece,
     Bishop,
     King,
