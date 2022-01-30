@@ -1,6 +1,6 @@
 import pygame as pg
 from typing import Union
-from utils import pos_to_index, load_img, smoothscale_sq, index_to_pos
+from .utils import pos_to_index, load_img, smoothscale_sq, index_to_pos
 
 
 class Piece:
@@ -49,7 +49,7 @@ class Bishop(Piece):
 
     def __init__(self, board_instance, position, color):
         super(Bishop, self).__init__(board_instance, "Bishop", position,
-                                     load_img("../res/13.png") if color == "black" else load_img("../res/23.png"),
+                                     load_img("./res/13.png") if color == "black" else load_img("./res/23.png"),
                                      color)
 
     def generate_move_available(self):
@@ -61,14 +61,10 @@ class Bishop(Piece):
                 if new_index[0] > 7 or new_index[0] < 0 or new_index[1] < 0 or new_index[1] > 7:
                     break
                 elif not self.board.check_index_available(new_index):
-                    piece = self.board.get_piece(new_index)
-                    if piece.color == self.color:
-                        break
-                    else:
+                    if self.board.get_piece(new_index).color != self.color:
                         indexes.append(new_index)
-                        break
-                else:
-                    indexes.append(new_index)
+                    break
+                indexes.append(new_index)
         return [index_to_pos(index) for index in indexes]
 
 
@@ -76,7 +72,7 @@ class Queen(Piece):
 
     def __init__(self, board_instance, position, color):
         super(Queen, self).__init__(board_instance, "Queen", position,
-                                    load_img("../res/15.png") if color == "black" else load_img("../res/25.png"),
+                                    load_img("res/15.png") if color == "black" else load_img("res/25.png"),
                                     color)
 
     def generate_move_available(self):
@@ -88,21 +84,17 @@ class Queen(Piece):
                 if new_index[0] > 7 or new_index[0] < 0 or new_index[1] < 0 or new_index[1] > 7:
                     break
                 elif not self.board.check_index_available(new_index):
-                    piece = self.board.get_piece(new_index)
-                    if piece.color == self.color:
-                        break
-                    else:
+                    if self.board.get_piece(new_index).color != self.color:
                         indexes.append(new_index)
-                        break
-                else:
-                    indexes.append(new_index)
+                    break
+                indexes.append(new_index)
         return [index_to_pos(index) for index in indexes]
 
 
 class King(Piece):
     def __init__(self, board_instance, position, color):
         super(King, self).__init__(board_instance, "King", position,
-                                   load_img("../res/16.png") if color == "black" else load_img("../res/26.png"),
+                                   load_img("res/16.png") if color == "black" else load_img("res/26.png"),
                                    color)
 
     def generate_move_available(self):
@@ -114,21 +106,21 @@ class Knight(Piece):
 
     def __init__(self, board_instance, position, color):
         super(Knight, self).__init__(board_instance, "Knight", position,
-                                     load_img("../res/12.png") if color == "black" else load_img("../res/22.png"),
+                                     load_img("res/12.png") if color == "black" else load_img("res/22.png"),
                                      color)
-        self.board = board_instance
 
     def generate_move_available(self) -> list[str]:
         moves = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1)]
-        to_remove = []
-        for index in (indexes := [(self.index[0] + move[0], self.index[1] + move[1]) for move in moves]):
+        indexes = []
+        for move in moves:
+            index = self.index[0] + move[0], self.index[1] + move[1]
             if index[0] > 7 or index[0] < 0 or index[1] < 0 or index[1] > 7:
-                to_remove.append(index)
+                continue
             elif not self.board.check_index_available(index):
-                if type(piece_on_index := self.board.get_piece(index)) is not int:
-                    if piece_on_index.color == self.color:
-                        to_remove.append(index)
-        _ = [indexes.remove(removing) for removing in to_remove]
+                if self.board.get_piece(index).color != self.color:
+                    indexes.append(index)
+                continue
+            indexes.append(index)
         return [index_to_pos(index) for index in indexes]
 
 
@@ -136,7 +128,7 @@ class Pawn(Piece):
 
     def __init__(self, board_instance, position, color):
         super(Pawn, self).__init__(board_instance, "Pawn", position,
-                                   load_img("../res/11.png") if color == "black" else load_img("../res/21.png"),
+                                   load_img("res/11.png") if color == "black" else load_img("res/21.png"),
                                    color)
         self.first_move_done = False  # if the pawn hasn't moved once, then he can move "twice"
 
@@ -183,56 +175,20 @@ class Rook(Piece):
 
     def __init__(self, board_instance, position, color):
         super(Rook, self).__init__(board_instance, "Rook", position,
-                                   load_img("../res/14.png") if color == "black" else load_img("../res/24.png"),
+                                   load_img("res/14.png") if color == "black" else load_img("res/24.png"),
                                    color)
 
     def generate_move_available(self) -> list[str]:
         directions = [(-1, 0), (0, -1), (0, 1), (1, 0)]
         indexes = []
         for direction in directions:
-            for length in range (1, 8):
+            for length in range(1, 8):
                 new_index = (self.index[0] + direction[0]*length, self.index[1] + direction[1]*length)
                 if new_index[0] > 7 or new_index[0] < 0 or new_index[1] < 0 or new_index[1] > 7:
                     break
                 elif not self.board.check_index_available(new_index):
-                    piece = self.board.get_piece(new_index)
-                    if piece.color == self.color:
-                        break
-                    else:
+                    if self.board.get_piece(new_index).color != self.color:
                         indexes.append(new_index)
-                        break
-                else:
-                    indexes.append(new_index)
+                    break
+                indexes.append(new_index)
         return [index_to_pos(index) for index in indexes]
-
-
-  #  def generate_move_available(self) -> list[str]:
-   #     all_moves = [  # we generate separately all the directions to stop each time at the first obstacle reached
-    #        [(-1, 0), (-2, 0), (-3, 0), (-4, 0), (-5, 0), (-6, 0), (-7, 0)],  # West
-     #       [(1, 0), (2, 0), (3, 0), (4, 0), (5, 0), (6, 0), (7, 0)],  # East
-      #      [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7)],  # South
-       #     [(0, -1), (0, -2), (0, -3), (0, -4), (0, -5), (0, -6), (0, -7)]  # North
-  #      ]
-   #     to_remove = [[], [], [], []]
-    #    found_enemy = [False, False, False, False]
-     #   indexes = [[], [], [], []]
-      #  for global_index, moves in enumerate(all_moves):
-       #     indexes[global_index] = [(self.index[0] + move[0], self.index[1] + move[1]) for move in moves]
-        #    for index in indexes[global_index]:
-         #       if index[0] > 7 or index[0] < 0 or index[1] < 0 or index[1] > 7:
-          #          to_remove[global_index].append(index)
-           #     elif not self.board.check_index_available(index) and len(to_remove[global_index]) == 0:
-   #                 piece = self.board.get_piece(index)
-    #                if piece.color == self.color:
-     #                   break
-      #              else:
-       #                 found_enemy[global_index] = True
-        #        elif len(to_remove[global_index]) > 0 or found_enemy[global_index]:
-         #           to_remove[global_index].append(index)
-#
- #       _ = [[indexes[global_index].remove(to_remove[global_index][index])
-  #           for index in range(len(to_remove[global_index]))] for global_index in range(len(all_moves))]
-   #     return [*[index_to_pos(index) for index in indexes[0]],
-    #            *[index_to_pos(index) for index in indexes[1]],
-     #           *[index_to_pos(index) for index in indexes[2]],
-      #          *[index_to_pos(index) for index in indexes[3]]]

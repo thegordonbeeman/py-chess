@@ -1,8 +1,8 @@
 import pygame as pg
 from typing import Union
 
-from utils import pos_to_index, index_to_pos
-from piece import (
+from .utils import pos_to_index, index_to_pos
+from .piece import (
     Piece,
     Bishop,
     King,
@@ -39,7 +39,7 @@ class Board:
             Pawn(self, "f2", "white"), Pawn(self, "g2", "white"), Pawn(self, "h2", "white"), Rook(self, "a1", "white"),
             Rook(self, "h1", "white"), Knight(self, "b1", "white"), Knight(self, "g1", "white"),
             Bishop(self, "c1", "white"), Bishop(self, "f1", "white"), King(self, "e1", "white"),
-            Queen(self, "d1", "white"), Pawn(self, "b3", "black")
+            Queen(self, "d1", "white")
         ]
         self.board = [[0 for _ in range(8)] for _ in range(8)]
 

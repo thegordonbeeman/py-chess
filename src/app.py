@@ -1,5 +1,5 @@
 import pygame as pg
-from board import Board
+from .board import Board
 
 
 class App:
@@ -34,6 +34,3 @@ class App:
             self.board.update()
 
             pg.display.update()
-
-App=App()
-App.run()
