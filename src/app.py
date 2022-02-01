@@ -32,5 +32,4 @@ class App:
 
             self.screen.fill((255, 255, 255))
             self.board.update()
-
             pg.display.update()

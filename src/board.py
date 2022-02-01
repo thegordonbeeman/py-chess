@@ -76,7 +76,8 @@ class Board:
         available = self.checker.check_square(index, color)
         if available:
             # TODO : Résoudre le problème sur les lignes (avec les tours et les reines et les bishops)
-            pass
+            return True
+        return False
 
     def check_pos_available(self, position: str) -> bool:
         try:

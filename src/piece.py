@@ -155,7 +155,7 @@ class Pawn(Piece):
             if not self.first_move_done and self.board.check_index_available(
                     index := (self.index[0], self.index[1] + 2 * moves[1])):
                 indexes.append(index)
-                
+
         #TODO regle en passant
 
         for move in kills:
