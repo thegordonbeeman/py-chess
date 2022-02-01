@@ -146,37 +146,27 @@ class Pawn(Piece):
         self.first_move_done = False  # if the pawn hasn't moved once, then he can move "twice"
 
     def generate_move_available(self) -> list[str]:
-        if not self.first_move_done:
-            # we get all the moves available in theory
-            moves = [(0, 1), (0, 2)] if self.color == "black" else [(0, -1), (0, -2)]
-        else:
-            moves = [(0, 1)] if self.color == "black" else [(0, -1)]
+        moves = (0, 1) if self.color == "black" else (0, -1)
         kills = [(1, 1), (-1, 1)] if self.color == "black" else [(1, -1), (-1, -1)]
+        indexes = []
 
-        # we transform the moves into the indexes if moved this way
-        to_remove = []
-        for index in (indexes := [(self.index[0]+move[0], self.index[1]+move[1]) for move in moves]):
-            # check if the move is doable
-            if not self.board.check_index_available(index) or (not self.first_move_done and len(to_remove) > 0):
-                # the move is impossible, add it to the removing list
-                # or the first move has been removed: then remove the others
-                to_remove.append(index)
-        _ = [indexes.remove(removing) for removing in to_remove]
+        if self.board.check_index_available(index := (self.index[0] + moves[0], self.index[1] + moves[1])):
+            indexes.append(index)
+            if not self.first_move_done and self.board.check_index_available(
+                    index := (self.index[0], self.index[1] + 2 * moves[1])):
+                indexes.append(index)
+                
+        #TODO regle en passant
 
-        # TODO: faire la règle "en passant"
-
-        to_remove = []
-        for index in (kill_indexes := [(self.index[0]+kill[0], self.index[1]+kill[1]) for kill in kills]):
-            # check if there's a piece inside the "kill" move, if not, remove the move from the list
-            if self.board.check_index_available(index) or index[0] > 7 or index[0] < 0 or index[1] < 0 or index[1] > 7:
-                to_remove.append(index)
+        for move in kills:
+            index = self.index[0] + move[0], self.index[1] + move[1]
+            if self.board.check_index_available(index) or not 0 <= index[0] <= 7 or not 0 <= index[1] <= 7:
+                continue
             elif type(piece_on_index := self.board.get_piece(index)) is not int:
-                if piece_on_index.color == self.color:
-                    to_remove.append(index)
-        _ = [kill_indexes.remove(removing) for removing in to_remove]
+                if piece_on_index.color != self.color:
+                    indexes.append(index)
+        return [index_to_pos(index) for index in indexes]
 
-        # returns the list of all available moves
-        return [*[index_to_pos(index) for index in indexes], *[index_to_pos(index_) for index_ in kill_indexes]]
 
     def move(self, new_position: str):
         if not self.first_move_done:
