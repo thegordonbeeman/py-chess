@@ -1,7 +1,9 @@
 import pygame as pg
 from typing import Union
+from copy import copy
 
 from .utils import pos_to_index, index_to_pos
+from .check import Checker
 from .piece import (
     Piece,
     Bishop,
@@ -41,6 +43,7 @@ class Board:
             Bishop(self, "c1", "white"), Bishop(self, "f1", "white"), King(self, "e1", "white"),
             Queen(self, "d1", "white")
         ]
+        self.checker = Checker(self)
         self.board = [[0 for _ in range(8)] for _ in range(8)]
 
         # TILES --------
@@ -60,6 +63,20 @@ class Board:
 
     def get_piece(self, index: tuple[int, int]) -> Union[Piece, int]:
         return self.board[index[0]][index[1]]
+
+    def get_king(self, color: str) -> King:
+        for piece in self.pieces:
+            if piece.color == color and isinstance(piece, King):
+                return piece
+
+    def get_check_king(self, index: tuple[int, int], color: str) -> bool:
+        second_king = self.get_king({"white": "black", "black": "white"}[color])
+        if abs(second_king.index[0]-index[0]) in [0, 1] and abs(second_king.index[1]-index[1]) in [0, 1]:
+            return True
+        available = self.checker.check_square(index, color)
+        if available:
+            # TODO : Résoudre le problème sur les lignes (avec les tours et les reines et les bishops)
+            pass
 
     def check_pos_available(self, position: str) -> bool:
         try:
@@ -95,8 +112,8 @@ class Board:
             return self.select(pos)
         else:
             if len(self.targets) != 0 and self.piece_selected is not None:
-                target_rects = [pg.Rect((self.pos[0]+pos_to_index(index)[0]*self.tile_size,
-                                         self.pos[1]+pos_to_index(index)[1]*self.tile_size),
+                target_rects = [pg.Rect((self.pos[0] + pos_to_index(index)[0] * self.tile_size,
+                                         self.pos[1] + pos_to_index(index)[1] * self.tile_size),
                                         (self.tile_size, self.tile_size)) for index in self.targets]
                 for index, rect in enumerate(target_rects):
                     if rect.collidepoint(pos):
@@ -129,14 +146,17 @@ class Board:
                     color = self.white if col % 2 == 0 else self.black
                 else:
                     color = self.black if col % 2 == 0 else self.white
-                pg.draw.rect(self.screen, color, [(self.pos[0]+col*self.tile_size, self.pos[1]+row*self.tile_size),
-                                                  (self.tile_size, self.tile_size)])
+                pg.draw.rect(self.screen, color,
+                             [(self.pos[0] + col * self.tile_size, self.pos[1] + row * self.tile_size),
+                              (self.tile_size, self.tile_size)])
+
+        #print(self.get_check_king(self.get_king("white").index, "white"))
 
         for piece in self.pieces:
             piece.render(self.screen, self.tile_size, self.pos)
 
         if self.selected is not None:
-            pos = (self.pos[0]+self.selected[0]*self.tile_size, self.pos[1]+self.selected[1]*self.tile_size)
+            pos = (self.pos[0] + self.selected[0] * self.tile_size, self.pos[1] + self.selected[1] * self.tile_size)
             self.screen.blit(self.selected_surf, pos)
 
             playable_indexes = self.piece_selected.generate_move_available()
@@ -147,7 +167,7 @@ class Board:
 
             for target in self.targets:
                 index = pos_to_index(target)
-                pos = (self.pos[0]+index[0]*self.tile_size, self.pos[1]+index[1]*self.tile_size)
+                pos = (self.pos[0] + index[0] * self.tile_size, self.pos[1] + index[1] * self.tile_size)
                 self.screen.blit(self.selected_surf, pos)
 
         """

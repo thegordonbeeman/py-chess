@@ -98,8 +98,21 @@ class King(Piece):
                                    color)
 
     def generate_move_available(self):
-        pass
-        # TODO : fonction pour générer une liste de tous les moves
+        moves = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)]
+        indexes = []
+        for move in moves:
+            index = self.index[0] + move[0], self.index[1] + move[1]
+            if index[0] > 7 or index[0] < 0 or index[1] < 0 or index[1] > 7:
+                continue
+            elif not self.board.check_index_available(index):
+                if self.board.get_piece(index).color != self.color and not self.board.get_check_king(
+                        index, self.color):
+                    indexes.append(index)
+                continue
+            elif self.board.get_check_king(index, self.color):
+                continue
+            indexes.append(index)
+        return [index_to_pos(index) for index in indexes]
 
 
 class Knight(Piece):
