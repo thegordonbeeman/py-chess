@@ -116,29 +116,18 @@ class King(Piece):
         # TODO : check if the king's destination leads to a check
 
         castle_pos = []
-        # queen side
-        rook = self.board.get_piece(queen_side["rook"])
-        if isinstance(rook, Rook):  # check if the piece is a rook
-            if not rook.first_move_done and not self.first_move_done and rook.color == self.color:
-                # check if the position between rook and king are empty
-                for pos in queen_side["empty_pos"]:
-                    if self.board.get_piece(pos) != 0:
-                        break
-                else:
-                    castle_pos.append({"rook": queen_side["rk_pos"], "king": queen_side["nk_pos"],
-                                       "former_rook": queen_side["rook"]})
 
-        # king side
-        rook = self.board.get_piece(king_side["rook"])
-        if isinstance(rook, Rook):  # check if the piece is a rook
-            if not rook.first_move_done and not self.first_move_done and rook.color == self.color:
-                # check if the position between rook and king are empty
-                for pos in king_side["empty_pos"]:
-                    if self.board.get_piece(pos) != 0:
-                        break
-                else:
-                    castle_pos.append({"rook": king_side["rk_pos"], "king": king_side["nk_pos"], 
-                                       "former_rook": king_side["rook"]})
+        for side in [queen_side, king_side]:
+            rook = self.board.get_piece(side["rook"])
+            if isinstance(rook, Rook):  # check if the piece is a rook
+                if not rook.first_move_done and not self.first_move_done and rook.color == self.color:
+                    # check if the position between rook and king are empty
+                    for pos in side["empty_pos"]:
+                        if self.board.get_piece(pos) != 0:
+                            break
+                    else:
+                        castle_pos.append({"rook": side["rk_pos"], "king": side["nk_pos"],
+                                           "former_rook": side["rook"]})
 
         return castle_pos
     
