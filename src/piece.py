@@ -104,30 +104,38 @@ class King(Piece):
         if self.board.get_check_king(self.index, self.color):  # if king is checked, then he can't castle
             return []
 
-        king_side = \
-            {"king": [4, 7], "rook": [7, 7], "empty_pos": ([6, 7], [5, 7]), "nk_pos": [6, 7], "rk_pos": [5, 7]} \
+        king_side = {
+            "king": [4, 7], "rook": [7, 7], "empty_pos": ([6, 7], [5, 7]), "nk_pos": [6, 7], "rk_pos": [5, 7]
+            } \
             if self.color == "white" \
-            else {"king": [4, 0], "rook": [7, 0], "empty_pos": ([6, 0], [5, 0]), "nk_pos": [6, 0], "rk_pos": [5, 0]}
-        queen_side = \
-            {"king": [4, 7], "rook": [0, 7], "empty_pos": ([1, 7], [2, 7]), "nk_pos": [2, 7], "rk_pos": [3, 7]} \
+            else {
+                "king": [4, 0], "rook": [7, 0], "empty_pos": ([6, 0], [5, 0]), "nk_pos": [6, 0], "rk_pos": [5, 0]
+            }
+        queen_side = {
+            "king": [4, 7], "rook": [0, 7], "empty_pos": ([1, 7], [2, 7], [3, 7]), "nk_pos": [2, 7], "rk_pos": [3, 7]
+            } \
             if self.color == "white" \
-            else {"king": [4, 0], "rook": [0, 0], "empty_pos": ([1, 0], [2, 0]), "nk_pos": [2, 0], "rk_pos": [3, 0]}
+            else {
+                "king": [4, 0], "rook": [0, 0], "empty_pos": ([1, 0], [2, 0], 3, 0), "nk_pos": [2, 0],"rk_pos": [3, 0]
+            }
 
         # TODO : check if the king's destination leads to a check
 
         castle_pos = []
 
         for side in [queen_side, king_side]:
-            rook = self.board.get_piece(side["rook"])
-            if isinstance(rook, Rook):  # check if the piece is a rook
-                if not rook.first_move_done and not self.first_move_done and rook.color == self.color:
-                    # check if the position between rook and king are empty
-                    for pos in side["empty_pos"]:
-                        if self.board.get_piece(pos) != 0:
-                            break
-                    else:
-                        castle_pos.append({"rook": side["rk_pos"], "king": side["nk_pos"],
-                                           "former_rook": side["rook"]})
+            if not (self.board.get_check_king(side["empty_pos"][0], self.color) and self.board.get_check_king(
+                    side["empty_pos"][1], self.color)):
+                rook = self.board.get_piece(side["rook"])
+                if isinstance(rook, Rook):  # check if the piece is a rook
+                    if not rook.first_move_done and not self.first_move_done and rook.color == self.color:
+                        # check if the position between rook and king are empty
+                        for pos in side["empty_pos"]:
+                            if self.board.get_piece(pos) != 0:
+                                break
+                        else:
+                            castle_pos.append({"rook": side["rk_pos"], "king": side["nk_pos"],
+                                               "former_rook": side["rook"]})
 
         return castle_pos
     
