@@ -18,6 +18,8 @@ class Piece:
         self.tile_size = 0
         self.rect = self.image.get_rect()
 
+        self.first_move_done: bool = False
+
     def __str__(self):
         return f"{self.name}"
 
@@ -33,6 +35,7 @@ class Piece:
         # need to test if the position is available before calling this function
         self.position = new_position
         self.index = pos_to_index(self.position)
+        self.first_move_done = True
 
     def render(self, screen: pg.Surface, tile_size: int, pos_board: tuple[int, int]):
         self.index = pos_to_index(self.position)
@@ -97,6 +100,56 @@ class King(Piece):
                                    load_img("res/16.png") if color == "black" else load_img("res/26.png"),
                                    color)
 
+    def castle(self) -> list:
+        if self.board.get_check_king(self.index, self.color):  # if king is checked, then he can't castle
+            return []
+
+        king_side = \
+            {"king": [4, 7], "rook": [7, 7], "empty_pos": ([6, 7], [5, 7]), "nk_pos": [6, 7], "rk_pos": [5, 7]} \
+            if self.color == "white" \
+            else {"king": [4, 0], "rook": [7, 0], "empty_pos": ([6, 0], [5, 0]), "nk_pos": [6, 0], "rk_pos": [5, 0]}
+        queen_side = \
+            {"king": [4, 7], "rook": [0, 7], "empty_pos": ([1, 7], [2, 7]), "nk_pos": [2, 7], "rk_pos": [3, 7]} \
+            if self.color == "white" \
+            else {"king": [4, 0], "rook": [0, 0], "empty_pos": ([1, 0], [2, 0]), "nk_pos": [2, 0], "rk_pos": [3, 0]}
+
+        # TODO : check if the king's destination leads to a check
+
+        castle_pos = []
+        # queen side
+        rook = self.board.get_piece(queen_side["rook"])
+        if isinstance(rook, Rook):  # check if the piece is a rook
+            if not rook.first_move_done and not self.first_move_done and rook.color == self.color:
+                # check if the position between rook and king are empty
+                for pos in queen_side["empty_pos"]:
+                    if self.board.get_piece(pos) != 0:
+                        break
+                else:
+                    castle_pos.append({"rook": queen_side["rk_pos"], "king": queen_side["nk_pos"],
+                                       "former_rook": queen_side["rook"]})
+
+        # king side
+        rook = self.board.get_piece(king_side["rook"])
+        if isinstance(rook, Rook):  # check if the piece is a rook
+            if not rook.first_move_done and not self.first_move_done and rook.color == self.color:
+                # check if the position between rook and king are empty
+                for pos in king_side["empty_pos"]:
+                    if self.board.get_piece(pos) != 0:
+                        break
+                else:
+                    castle_pos.append({"rook": king_side["rk_pos"], "king": king_side["nk_pos"], 
+                                       "former_rook": king_side["rook"]})
+
+        return castle_pos
+    
+    def move(self, new_position: str):
+        castle = self.castle()
+        if len(castle) > 0:
+            for castle_dict in castle:
+                if list(pos_to_index(new_position)) == castle_dict["king"]:
+                    self.board.get_piece(castle_dict["former_rook"]).move(index_to_pos(tuple(castle_dict["rook"])))
+        return super(King, self).move(new_position)
+
     def generate_move_available(self):
         moves = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)]
         indexes = []
@@ -112,6 +165,8 @@ class King(Piece):
             elif self.board.get_check_king(index, self.color):
                 continue
             indexes.append(index)
+        for castle_dict in self.castle():
+            indexes.append(tuple(castle_dict["king"]))
         return [index_to_pos(index) for index in indexes]
 
 
@@ -143,7 +198,6 @@ class Pawn(Piece):
         super(Pawn, self).__init__(board_instance, "Pawn", position,
                                    load_img("res/11.png") if color == "black" else load_img("res/21.png"),
                                    color)
-        self.first_move_done = False  # if the pawn hasn't moved once, then he can move "twice"
 
     def generate_move_available(self) -> list[str]:
         moves = (0, 1) if self.color == "black" else (0, -1)
@@ -156,7 +210,7 @@ class Pawn(Piece):
                     index := (self.index[0], self.index[1] + 2 * moves[1])):
                 indexes.append(index)
 
-        #TODO regle en passant
+        # TODO rêgle en passant
 
         for move in kills:
             index = self.index[0] + move[0], self.index[1] + move[1]
@@ -166,12 +220,6 @@ class Pawn(Piece):
                 if piece_on_index.color != self.color:
                     indexes.append(index)
         return [index_to_pos(index) for index in indexes]
-
-
-    def move(self, new_position: str):
-        if not self.first_move_done:
-            self.first_move_done = True
-        return super().move(new_position)
 
 
 class Rook(Piece):
@@ -186,7 +234,7 @@ class Rook(Piece):
         indexes = []
         for direction in directions:
             for length in range(1, 8):
-                new_index = (self.index[0] + direction[0]*length, self.index[1] + direction[1]*length)
+                new_index = (self.index[0] + direction[0] * length, self.index[1] + direction[1] * length)
                 if new_index[0] > 7 or new_index[0] < 0 or new_index[1] < 0 or new_index[1] > 7:
                     break
                 elif not self.board.check_index_available(new_index):

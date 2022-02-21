@@ -7,7 +7,11 @@ class App:
     def __init__(self):
 
         # ---------- SCREEN & CONST ---------
-        self.screen = pg.display.set_mode((800, 800), pg.SCALED)
+        self.screen = pg.display.set_mode((1000, 1000), pg.SCALED)
+
+        pg.display.set_caption("Py-Chess")  # title of the window
+        pg.display.set_icon(pg.image.load("res/21.png").convert_alpha())  # icon of the window
+
         self.running = True
 
         # --------- BOARD -------------------

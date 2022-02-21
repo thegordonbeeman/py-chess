@@ -47,7 +47,7 @@ class Board:
         self.board = [[0 for _ in range(8)] for _ in range(8)]
 
         # TILES --------
-        self.tile_size: int = 85
+        self.tile_size: int = 110
         # colors
         self.black = (118, 150, 86)
         self.white = (238, 238, 210)
