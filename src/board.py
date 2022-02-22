@@ -55,6 +55,7 @@ class Board:
         # selection
         self.selected = None
         self.piece_selected: Union[Piece, None] = None
+        self.enpassant = None
 
         # Temporaire, pour montrer quelle case tu selectionnes
         self.selected_surf = pg.Surface((self.tile_size, self.tile_size), pg.SRCALPHA)
@@ -108,6 +109,16 @@ class Board:
         self.turn = {"white": "black", "black": "white"}[self.turn]
         self.targets = []
 
+    ######### A optimiser
+
+    def check_enpassant(self, piece, index):
+        if str(piece) == 'Pawn':
+            if piece.index[1] == (6 if piece.color == 'white' else 1):
+                print('row', self.targets[index][1])
+                if self.targets[index][1] == ('4' if piece.color == 'white' else '5'):
+                    return piece.index[0], piece.index[1] + (-1 if piece.color == 'white' else 1)
+        return None
+
     def handle_clicks(self, pos: tuple[int, int]):
         if self.selected is None:
             return self.select(pos)
@@ -118,6 +129,8 @@ class Board:
                                         (self.tile_size, self.tile_size)) for index in self.targets]
                 for index, rect in enumerate(target_rects):
                     if rect.collidepoint(pos):
+                        print(self.piece_selected, self.targets[index])
+                        self.enpassant = self.check_enpassant(self.piece_selected, index)
                         self.piece_selected.move(self.targets[index])
                         return self.next_turn()
                 self.selected = None
@@ -127,7 +140,6 @@ class Board:
                 self.piece_selected = None
 
     def update(self):
-
         self.targets = []
         # update the board
         self.board = []
@@ -151,8 +163,6 @@ class Board:
                              [(self.pos[0] + col * self.tile_size, self.pos[1] + row * self.tile_size),
                               (self.tile_size, self.tile_size)])
 
-        #print(self.get_check_king(self.get_king("white").index, "white"))
-
         for piece in self.pieces:
             piece.render(self.screen, self.tile_size, self.pos)
 
@@ -160,11 +170,7 @@ class Board:
             pos = (self.pos[0] + self.selected[0] * self.tile_size, self.pos[1] + self.selected[1] * self.tile_size)
             self.screen.blit(self.selected_surf, pos)
 
-            playable_indexes = self.piece_selected.generate_move_available()
-            if type(playable_indexes) is list:  # temporary: remove the condition when every piece is finished
-                self.targets = playable_indexes
-            else:
-                self.targets = []
+            self.targets = self.piece_selected.generate_move_available()
 
             for target in self.targets:
                 index = pos_to_index(target)

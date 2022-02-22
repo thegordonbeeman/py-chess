@@ -32,6 +32,7 @@ class Piece:
             piece = self.board.get_piece(pos_to_index(new_position))
             if isinstance(piece, Piece):
                 self.board.pieces.remove(piece)
+
         # need to test if the position is available before calling this function
         self.position = new_position
         self.index = pos_to_index(self.position)
@@ -211,7 +212,9 @@ class Pawn(Piece):
 
         for move in kills:
             index = self.index[0] + move[0], self.index[1] + move[1]
-            if self.board.check_index_available(index) or not 0 <= index[0] <= 7 or not 0 <= index[1] <= 7:
+            if index == self.board.enpassant:
+                indexes.append(index)
+            elif self.board.check_index_available(index) or not 0 <= index[0] <= 7 or not 0 <= index[1] <= 7:
                 continue
             elif type(piece_on_index := self.board.get_piece(index)) is not int:
                 if piece_on_index.color != self.color:
