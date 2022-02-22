@@ -109,14 +109,14 @@ class King(Piece):
             } \
             if self.color == "white" \
             else {
-                "king": [4, 0], "rook": [7, 0], "empty_pos": ([6, 0], [5, 0]), "nk_pos": [6, 0], "rk_pos": [5, 0]
+            "king": [4, 0], "rook": [7, 0], "empty_pos": ([6, 0], [5, 0]), "nk_pos": [6, 0], "rk_pos": [5, 0]
             }
         queen_side = {
-            "king": [4, 7], "rook": [0, 7], "empty_pos": ([1, 7], [2, 7], [3, 7]), "nk_pos": [2, 7], "rk_pos": [3, 7]
+            "king": [4, 7], "rook": [0, 7], "empty_pos": ([3, 7], [2, 7], [1, 7]), "nk_pos": [2, 7], "rk_pos": [3, 7]
             } \
             if self.color == "white" \
             else {
-                "king": [4, 0], "rook": [0, 0], "empty_pos": ([1, 0], [2, 0], 3, 0), "nk_pos": [2, 0],"rk_pos": [3, 0]
+            "king": [4, 0], "rook": [0, 0], "empty_pos": ([3, 0], [2, 0], [1, 0]), "nk_pos": [2, 0], "rk_pos": [3, 0]
             }
 
         # TODO : check if the king's destination leads to a check
@@ -124,8 +124,8 @@ class King(Piece):
         castle_pos = []
 
         for side in [queen_side, king_side]:
-            if not (self.board.get_check_king(side["empty_pos"][0], self.color) and self.board.get_check_king(
-                    side["empty_pos"][1], self.color)):
+            if not self.board.get_check_king(side["empty_pos"][0], self.color) and not self.board.get_check_king(
+                    side["empty_pos"][1], self.color):
                 rook = self.board.get_piece(side["rook"])
                 if isinstance(rook, Rook):  # check if the piece is a rook
                     if not rook.first_move_done and not self.first_move_done and rook.color == self.color:
