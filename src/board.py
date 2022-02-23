@@ -1,4 +1,5 @@
 import pygame as pg
+import pygame.gfxdraw
 from typing import Union
 from copy import copy
 
@@ -49,13 +50,27 @@ class Board:
         # TILES --------
         self.tile_size: int = 110
         # colors
-        self.black = (118, 150, 86)
-        self.white = (238, 238, 210)
+        self.black = (181, 136, 99)
+        self.white = (240, 217, 181)
+        self.select_color = (218, 195, 50)
+        # selection square
+        grey = (80, 80, 80)
+        self.kill_square = pg.Surface((self.tile_size, self.tile_size), pg.SRCALPHA)
+        self.kill_square.set_alpha(50)
+        pg.draw.circle(self.kill_square, grey, (self.kill_square.get_width()//2,
+                                                self.kill_square.get_height()//2),
+                       self.kill_square.get_width()//2, width=8)
+        self.go_square = pg.Surface((self.tile_size, self.tile_size), pg.SRCALPHA)
+        self.go_square.set_alpha(50)
+        pygame.gfxdraw.aacircle(self.go_square, self.go_square.get_width() // 2,
+                                self.go_square.get_height() // 2, self.tile_size // 6, grey)
+        pygame.gfxdraw.filled_circle(self.go_square, self.go_square.get_width() // 2,
+                                     self.go_square.get_height() // 2, self.tile_size // 6, grey)
 
         # selection
         self.selected = None
         self.piece_selected: Union[Piece, None] = None
-        self.enpassant = None
+        self.en_passant = None
 
         # Temporaire, pour montrer quelle case tu selectionnes
         self.selected_surf = pg.Surface((self.tile_size, self.tile_size), pg.SRCALPHA)
@@ -109,35 +124,24 @@ class Board:
         self.turn = {"white": "black", "black": "white"}[self.turn]
         self.targets = []
 
-    ######### A optimiser
-
-    def check_enpassant(self, piece, index):
-        if str(piece) == 'Pawn':
+    def check_en_passant(self, piece, index) -> Union[None, tuple[int, int]]:
+        if isinstance(piece, Pawn):
             if piece.index[1] == (6 if piece.color == 'white' else 1):
-                print('row', self.targets[index][1])
                 if self.targets[index][1] == ('4' if piece.color == 'white' else '5'):
                     return piece.index[0], piece.index[1] + (-1 if piece.color == 'white' else 1)
-        return None
 
     def handle_clicks(self, pos: tuple[int, int]):
-        if self.selected is None:
-            return self.select(pos)
-        else:
-            if len(self.targets) != 0 and self.piece_selected is not None:
-                target_rects = [pg.Rect((self.pos[0] + pos_to_index(index)[0] * self.tile_size,
-                                         self.pos[1] + pos_to_index(index)[1] * self.tile_size),
-                                        (self.tile_size, self.tile_size)) for index in self.targets]
-                for index, rect in enumerate(target_rects):
-                    if rect.collidepoint(pos):
-                        print(self.piece_selected, self.targets[index])
-                        self.enpassant = self.check_enpassant(self.piece_selected, index)
-                        self.piece_selected.move(self.targets[index])
-                        return self.next_turn()
-                self.selected = None
-                self.piece_selected = None
-            else:
-                self.selected = None
-                self.piece_selected = None
+        if len(self.targets) != 0 and self.piece_selected is not None:
+            target_rects = [pg.Rect((self.pos[0] + pos_to_index(index)[0] * self.tile_size,
+                                     self.pos[1] + pos_to_index(index)[1] * self.tile_size),
+                                    (self.tile_size, self.tile_size)) for index in self.targets]
+            for index, rect in enumerate(target_rects):
+                if rect.collidepoint(pos):
+                    self.en_passant = self.check_en_passant(self.piece_selected, index)
+                    self.piece_selected.move(self.targets[index])
+                    return self.next_turn()
+            self.select(pos)
+        self.select(pos)
 
     def update(self):
         self.targets = []
@@ -159,6 +163,9 @@ class Board:
                     color = self.white if col % 2 == 0 else self.black
                 else:
                     color = self.black if col % 2 == 0 else self.white
+                if self.selected is not None:
+                    if [col, row] == list(self.selected):
+                        color = self.select_color
                 pg.draw.rect(self.screen, color,
                              [(self.pos[0] + col * self.tile_size, self.pos[1] + row * self.tile_size),
                               (self.tile_size, self.tile_size)])
@@ -168,14 +175,16 @@ class Board:
 
         if self.selected is not None:
             pos = (self.pos[0] + self.selected[0] * self.tile_size, self.pos[1] + self.selected[1] * self.tile_size)
-            self.screen.blit(self.selected_surf, pos)
-
             self.targets = self.piece_selected.generate_move_available()
 
             for target in self.targets:
                 index = pos_to_index(target)
                 pos = (self.pos[0] + index[0] * self.tile_size, self.pos[1] + index[1] * self.tile_size)
-                self.screen.blit(self.selected_surf, pos)
+
+                if self.get_piece(pos_to_index(target)) == 0:
+                    self.screen.blit(self.go_square, pos)
+                else:
+                    self.screen.blit(self.kill_square, pos)
 
         """
         Debug : show the board in the console

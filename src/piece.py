@@ -196,6 +196,7 @@ class Pawn(Piece):
         super(Pawn, self).__init__(board_instance, "Pawn", position,
                                    load_img("res/11.png") if color == "black" else load_img("res/21.png"),
                                    color)
+        self.en_passant = False, (0, 0)
 
     def generate_move_available(self) -> list[str]:
         moves = (0, 1) if self.color == "black" else (0, -1)
@@ -212,14 +213,24 @@ class Pawn(Piece):
 
         for move in kills:
             index = self.index[0] + move[0], self.index[1] + move[1]
-            if index == self.board.enpassant:
+            if index == self.board.en_passant:
                 indexes.append(index)
+                self.en_passant = True, self.board.en_passant
             elif self.board.check_index_available(index) or not 0 <= index[0] <= 7 or not 0 <= index[1] <= 7:
                 continue
             elif type(piece_on_index := self.board.get_piece(index)) is not int:
                 if piece_on_index.color != self.color:
                     indexes.append(index)
         return [index_to_pos(index) for index in indexes]
+
+    def move(self, new_position: str):
+        if self.en_passant[0]:
+            if list(pos_to_index(new_position)) == list(self.en_passant[1]):
+                self.board.pieces.remove(self.board.get_piece([self.en_passant[1][0],
+                                                               self.en_passant[1][1]+(-1 if self.color == "black"
+                                                                                      else 1)]))
+        self.en_passant = False, (0, 0)
+        return super(Pawn, self).move(new_position)
 
 
 class Rook(Piece):
