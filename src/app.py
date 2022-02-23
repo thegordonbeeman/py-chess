@@ -34,6 +34,6 @@ class App:
                     if event.button == 1:
                         self.board.handle_clicks(event.pos)
 
-            self.screen.fill((255, 255, 255))
+            self.screen.fill((49, 46, 43))
             self.board.update()
             pg.display.update()

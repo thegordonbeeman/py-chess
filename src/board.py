@@ -166,9 +166,18 @@ class Board:
                 if self.selected is not None:
                     if [col, row] == list(self.selected):
                         color = self.select_color
+                radius = 8
+                border_bottom_left_radius = radius if [col, row] == [0, 7] else 1
+                border_bottom_right_radius = radius if [col, row] == [7, 7] else 1
+                border_top_left_radius = radius if [col, row] == [0, 0] else 1
+                border_top_right_radius = radius if [col, row] == [7, 0] else 1
                 pg.draw.rect(self.screen, color,
                              [(self.pos[0] + col * self.tile_size, self.pos[1] + row * self.tile_size),
-                              (self.tile_size, self.tile_size)])
+                              (self.tile_size, self.tile_size)],
+                             border_bottom_left_radius=border_bottom_left_radius,
+                             border_bottom_right_radius=border_bottom_right_radius,
+                             border_top_left_radius=border_top_left_radius,
+                             border_top_right_radius=border_top_right_radius)
 
         for piece in self.pieces:
             piece.render(self.screen, self.tile_size, self.pos)
