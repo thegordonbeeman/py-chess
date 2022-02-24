@@ -59,6 +59,7 @@ class Bishop(Piece):
     def generate_move_available(self):
         directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
         indexes = []
+        real_indexes = []
         for direction in directions:
             for length in range(1, 8):
                 new_index = (self.index[0] + direction[0] * length, self.index[1] + direction[1] * length)
@@ -69,7 +70,13 @@ class Bishop(Piece):
                         indexes.append(new_index)
                     break
                 indexes.append(new_index)
-        return [index_to_pos(index) for index in indexes]
+        if self.board.in_check:
+            for _ in range(len(indexes)):
+                if indexes[_] in self.board.possible_squares:
+                    real_indexes.append(indexes[_])
+            return [index_to_pos(index) for index in real_indexes]
+        else:
+            return [index_to_pos(index) for index in indexes]
 
 
 class Queen(Piece):
@@ -82,6 +89,7 @@ class Queen(Piece):
     def generate_move_available(self):
         directions = [(-1, 0), (0, -1), (0, 1), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
         indexes = []
+        real_indexes = []
         for direction in directions:
             for length in range(1, 8):
                 new_index = (self.index[0] + direction[0] * length, self.index[1] + direction[1] * length)
@@ -92,7 +100,13 @@ class Queen(Piece):
                         indexes.append(new_index)
                     break
                 indexes.append(new_index)
-        return [index_to_pos(index) for index in indexes]
+        if self.board.in_check:
+            for _ in range(len(indexes)):
+                if indexes[_] in self.board.possible_squares:
+                    real_indexes.append(indexes[_])
+            return [index_to_pos(index) for index in real_indexes]
+        else:
+            return [index_to_pos(index) for index in indexes]
 
 
 class King(Piece):
@@ -178,6 +192,7 @@ class Knight(Piece):
     def generate_move_available(self) -> list[str]:
         moves = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1)]
         indexes = []
+        real_indexes = []
         for move in moves:
             index = self.index[0] + move[0], self.index[1] + move[1]
             if index[0] > 7 or index[0] < 0 or index[1] < 0 or index[1] > 7:
@@ -187,7 +202,14 @@ class Knight(Piece):
                     indexes.append(index)
                 continue
             indexes.append(index)
-        return [index_to_pos(index) for index in indexes]
+        if self.board.in_check:
+            for _ in range(len(indexes)):
+                if indexes[_] in self.board.possible_squares:
+                    real_indexes.append(indexes[_])
+            return [index_to_pos(index) for index in real_indexes]
+        else:
+            return [index_to_pos(index) for index in indexes]
+
 
 
 class Pawn(Piece):
@@ -202,6 +224,7 @@ class Pawn(Piece):
         moves = (0, 1) if self.color == "black" else (0, -1)
         kills = [(1, 1), (-1, 1)] if self.color == "black" else [(1, -1), (-1, -1)]
         indexes = []
+        real_indexes = []
 
         if self.board.check_index_available(index := (self.index[0] + moves[0], self.index[1] + moves[1])):
             indexes.append(index)
@@ -221,7 +244,13 @@ class Pawn(Piece):
             elif type(piece_on_index := self.board.get_piece(index)) is not int:
                 if piece_on_index.color != self.color:
                     indexes.append(index)
-        return [index_to_pos(index) for index in indexes]
+        if self.board.in_check:
+            for _ in range(len(indexes)):
+                if indexes[_] in self.board.possible_squares:
+                    real_indexes.append(indexes[_])
+            return [index_to_pos(index) for index in real_indexes]
+        else:
+            return [index_to_pos(index) for index in indexes]
 
     def move(self, new_position: str):
         if self.en_passant[0]:
@@ -243,6 +272,7 @@ class Rook(Piece):
     def generate_move_available(self) -> list[str]:
         directions = [(-1, 0), (0, -1), (0, 1), (1, 0)]
         indexes = []
+        real_indexes = []
         for direction in directions:
             for length in range(1, 8):
                 new_index = (self.index[0] + direction[0] * length, self.index[1] + direction[1] * length)
@@ -253,4 +283,10 @@ class Rook(Piece):
                         indexes.append(new_index)
                     break
                 indexes.append(new_index)
-        return [index_to_pos(index) for index in indexes]
+        if self.board.in_check:
+            for _ in range(len(indexes)):
+                if indexes[_] in self.board.possible_squares:
+                    real_indexes.append(indexes[_])
+            return [index_to_pos(index) for index in real_indexes]
+        else:
+            return [index_to_pos(index) for index in indexes]

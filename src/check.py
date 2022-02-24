@@ -13,6 +13,10 @@ class Checker:
         return self.check_square(index, color)
 
     def check_square(self, index_: tuple[int, int], color: str) -> bool:
+        possible_squares = []
+        knight_check = False
+        rook_check = False
+        bishop_check = False
         self.color = color
         knight_moves = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1)]
         for move in knight_moves:
@@ -22,7 +26,7 @@ class Checker:
             elif not self.board.check_index_available(index):
                 if self.board.get_piece(index).color != self.color:
                     if isinstance(self.board.get_piece(index), Knight):
-                        return True
+                        knight_check = True
         bishop_directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
         for direction in bishop_directions:
             for length in range(1, 8):
@@ -32,7 +36,10 @@ class Checker:
                 elif not self.board.check_index_available(new_index):
                     if self.board.get_piece(new_index).color != self.color:
                         if type(self.board.get_piece(new_index)) in [Queen, Bishop]:
-                            return True
+
+                            bishop_check = True
+                            for _ in range(length):
+                                possible_squares.append((index_[0] + direction[0] * _, index_[1] + direction[1] * _))
                         else:
                             break
                     else:
@@ -55,7 +62,9 @@ class Checker:
                 elif not self.board.check_index_available(new_index):
                     if self.board.get_piece(new_index).color != self.color:
                         if type(self.board.get_piece(new_index)) in [Queen, Rook]:
-                            return True
+                            rook_check = True
+                            for _ in range(length):
+                                possible_squares.append((index_[0] + direction[0] * _, index_[1] + direction[1] * _))
                         else:
                             break
                     else:
@@ -78,5 +87,7 @@ class Checker:
                 if self.board.get_piece(new_index).color != self.color:
                     if isinstance(self.board.get_piece(new_index), Pawn):
                         return True
+        if knight_check:
+            possible_squares = []
 
-        return False
+        return (knight_check or rook_check or bishop_check), possible_squares

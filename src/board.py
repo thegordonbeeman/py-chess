@@ -52,7 +52,7 @@ class Board:
         # colors
         self.black = (181, 136, 99)
         self.white = (240, 217, 181)
-        self.select_color = (218, 195, 50)
+        self.select_color = (247, 236, 91)
         # selection square
         grey = (80, 80, 80)
         self.kill_square = pg.Surface((self.tile_size, self.tile_size), pg.SRCALPHA)
@@ -71,6 +71,8 @@ class Board:
         self.selected = None
         self.piece_selected: Union[Piece, None] = None
         self.en_passant = None
+        self.possible_squares = []
+        self.in_check = False
 
         # Temporaire, pour montrer quelle case tu selectionnes
         self.selected_surf = pg.Surface((self.tile_size, self.tile_size), pg.SRCALPHA)
@@ -89,9 +91,8 @@ class Board:
         second_king = self.get_king({"white": "black", "black": "white"}[color])
         if abs(second_king.index[0]-index[0]) in [0, 1] and abs(second_king.index[1]-index[1]) in [0, 1]:
             return True
-        available = self.checker.check_square(index, color)
-        if available:
-            # TODO : Résoudre le problème sur les lignes (avec les tours et les reines et les bishops)
+        check, self.possible_squares = self.checker.check_square(index, color)
+        if check:
             return True
         return False
 
@@ -181,6 +182,9 @@ class Board:
 
         for piece in self.pieces:
             piece.render(self.screen, self.tile_size, self.pos)
+
+        index = (self.get_king(self.turn).index[0], self.get_king(self.turn).index[1])
+        self.in_check, self.possible_squares = self.checker.check_square(index, str(self.turn))
 
         if self.selected is not None:
             pos = (self.pos[0] + self.selected[0] * self.tile_size, self.pos[1] + self.selected[1] * self.tile_size)
