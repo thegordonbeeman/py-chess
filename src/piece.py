@@ -75,6 +75,13 @@ class Bishop(Piece):
                 if indexes[_] in self.board.possible_squares:
                     real_indexes.append(indexes[_])
             return [index_to_pos(index) for index in real_indexes]
+        for _ in range(len(self.board.pinned_pieces)):
+            if self.index == self.board.pinned_pieces[_][0]:
+                for __ in range(len(indexes)):
+                    print(self.board.pinned_pieces[_][1], indexes[__])
+                    if indexes[__] in self.board.pinned_pieces[_][1]:
+                        real_indexes.append(indexes[__])
+                return [index_to_pos(index) for index in real_indexes]
         else:
             return [index_to_pos(index) for index in indexes]
 
@@ -105,6 +112,13 @@ class Queen(Piece):
                 if indexes[_] in self.board.possible_squares:
                     real_indexes.append(indexes[_])
             return [index_to_pos(index) for index in real_indexes]
+        for _ in range(len(self.board.pinned_pieces)):
+            if self.index == self.board.pinned_pieces[_][0]:
+                for __ in range(len(indexes)):
+                    print(self.board.pinned_pieces[_][1], indexes[__])
+                    if indexes[__] in self.board.pinned_pieces[_][1]:
+                        real_indexes.append(indexes[__])
+                return [index_to_pos(index) for index in real_indexes]
         else:
             return [index_to_pos(index) for index in indexes]
 
@@ -207,9 +221,15 @@ class Knight(Piece):
                 if indexes[_] in self.board.possible_squares:
                     real_indexes.append(indexes[_])
             return [index_to_pos(index) for index in real_indexes]
+        for _ in range(len(self.board.pinned_pieces)):
+            if self.index == self.board.pinned_pieces[_][0]:
+                for __ in range(len(indexes)):
+                    print(self.board.pinned_pieces[_][1], indexes[__])
+                    if indexes[__] in self.board.pinned_pieces[_][1]:
+                        real_indexes.append(indexes[__])
+                return [index_to_pos(index) for index in real_indexes]
         else:
             return [index_to_pos(index) for index in indexes]
-
 
 
 class Pawn(Piece):
@@ -249,6 +269,13 @@ class Pawn(Piece):
                 if indexes[_] in self.board.possible_squares:
                     real_indexes.append(indexes[_])
             return [index_to_pos(index) for index in real_indexes]
+        for _ in range(len(self.board.pinned_pieces)):
+            if self.index == self.board.pinned_pieces[_][0]:
+                for __ in range(len(indexes)):
+                    print(self.board.pinned_pieces[_][1], indexes[__])
+                    if indexes[__] in self.board.pinned_pieces[_][1]:
+                        real_indexes.append(indexes[__])
+                return [index_to_pos(index) for index in real_indexes]
         else:
             return [index_to_pos(index) for index in indexes]
 
@@ -288,5 +315,12 @@ class Rook(Piece):
                 if indexes[_] in self.board.possible_squares:
                     real_indexes.append(indexes[_])
             return [index_to_pos(index) for index in real_indexes]
+        for _ in range(len(self.board.pinned_pieces)):
+            if self.index == self.board.pinned_pieces[_][0]:
+                for __ in range(len(indexes)):
+                    print(self.board.pinned_pieces[_][1], indexes[__])
+                    if indexes[__] in self.board.pinned_pieces[_][1]:
+                        real_indexes.append(indexes[__])
+                return [index_to_pos(index) for index in real_indexes]
         else:
             return [index_to_pos(index) for index in indexes]

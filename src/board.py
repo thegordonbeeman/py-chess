@@ -73,6 +73,7 @@ class Board:
         self.en_passant = None
         self.possible_squares = []
         self.in_check = False
+        self.pinned_pieces = []
 
         # Temporaire, pour montrer quelle case tu selectionnes
         self.selected_surf = pg.Surface((self.tile_size, self.tile_size), pg.SRCALPHA)
@@ -91,7 +92,7 @@ class Board:
         second_king = self.get_king({"white": "black", "black": "white"}[color])
         if abs(second_king.index[0]-index[0]) in [0, 1] and abs(second_king.index[1]-index[1]) in [0, 1]:
             return True
-        check, self.possible_squares = self.checker.check_square(index, color)
+        check, self.possible_squares, _ = self.checker.check_square_pins(index, color)
         if check:
             return True
         return False
@@ -184,8 +185,8 @@ class Board:
             piece.render(self.screen, self.tile_size, self.pos)
 
         index = (self.get_king(self.turn).index[0], self.get_king(self.turn).index[1])
-        self.in_check, self.possible_squares = self.checker.check_square(index, str(self.turn))
-
+        self.in_check, self.possible_squares, self.pinned_pieces = self.checker.check_square_pins(index, str(self.turn))
+        print(self.in_check, self.possible_squares, self.pinned_pieces)
         if self.selected is not None:
             pos = (self.pos[0] + self.selected[0] * self.tile_size, self.pos[1] + self.selected[1] * self.tile_size)
             self.targets = self.piece_selected.generate_move_available()
