@@ -13,6 +13,7 @@ class App:
         pg.display.set_icon(pg.image.load("res/21.png").convert_alpha())  # icon of the window
 
         self.running = True
+        self.clock = pg.time.Clock()
 
         # --------- BOARD -------------------
         self.board = Board(self.screen)
@@ -23,6 +24,9 @@ class App:
         raise SystemExit
 
     def run(self):
+        self.screen.fill((49, 46, 43))
+        self.board.update()
+        pg.display.update()
 
         while self.running:
 
@@ -33,7 +37,8 @@ class App:
                 if event.type == pg.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         self.board.handle_clicks(event.pos)
+                        self.screen.fill((49, 46, 43))
+                        self.board.update()
+                        pg.display.update()
 
-            self.screen.fill((49, 46, 43))
-            self.board.update()
-            pg.display.update()
+            self.clock.tick(30)
