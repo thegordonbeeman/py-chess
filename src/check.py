@@ -47,6 +47,16 @@ class Checker:
                                 possible_squares.append((index_[0] + direction[0] * _, index_[1] + direction[1] * _))
                         else:
                             break
+                    elif isinstance(self.board.get_piece(new_index), King):
+                        for i in range(2, 7):
+                            new_index = (index_[0] + direction[0] * i, index_[1] + direction[1] * i)
+                            if new_index[0] > 7 or new_index[0] < 0 or new_index[1] < 0 or new_index[1] > 7:
+                                break
+                            elif not self.board.check_index_available(new_index):
+                                if self.board.get_piece(new_index).color != self.color:
+                                    if type(self.board.get_piece(new_index)) in [Queen, Bishop]:
+                                        bishop_check = True
+                                        break
                     else:   # If there is a friendly piece
                         for new_length in range(piece_length + 1, 8):    # We keep the loop going
                             new_index = (index_[0] + direction[0] * new_length, index_[1] + direction[1] * new_length)
@@ -72,16 +82,6 @@ class Checker:
                                 else:
                                     blocked = True
                                     break
-                elif isinstance(self.board.get_piece(new_index), King):
-                    for i in range(2, 7):
-                        new_index = (index_[0] + direction[0] * i, index_[1] + direction[1] * i)
-                        if new_index[0] > 7 or new_index[0] < 0 or new_index[1] < 0 or new_index[1] > 7:
-                            break
-                        elif not self.board.check_index_available(new_index):
-                            if self.board.get_piece(new_index).color != self.color:
-                                if type(self.board.get_piece(new_index)) in [Queen, Bishop]:
-                                    bishop_check = True
-                                    break
         rook_directions = [(-1, 0), (0, -1), (0, 1), (1, 0)]
         for direction in rook_directions:
             length = 0
@@ -100,6 +100,15 @@ class Checker:
                                 possible_squares.append((index_[0] + direction[0] * _, index_[1] + direction[1] * _))
                         else:
                             break
+                    elif isinstance(self.board.get_piece(new_index), King):
+                        for i in range(2, 7):
+                            new_index = (index_[0] + direction[0] * i, index_[1] + direction[1] * i)
+                            if new_index[0] > 7 or new_index[0] < 0 or new_index[1] < 0 or new_index[1] > 7:
+                                break
+                            elif not self.board.check_index_available(new_index):
+                                if self.board.get_piece(new_index).color != self.color:
+                                    if type(self.board.get_piece(new_index)) in [Queen, Rook]:
+                                        rook_check = True
                     else:   # If there is a friendly piece
                         for new_length in range(piece_length + 1, 8):    # We keep the loop going
                             new_index = (index_[0] + direction[0] * new_length, index_[1] + direction[1] * new_length)
@@ -125,15 +134,6 @@ class Checker:
                                 else:
                                     blocked = True
                                     break
-                elif isinstance(self.board.get_piece(new_index), King):
-                    for i in range(2, 7):
-                        new_index = (index_[0] + direction[0] * i, index_[1] + direction[1] * i)
-                        if new_index[0] > 7 or new_index[0] < 0 or new_index[1] < 0 or new_index[1] > 7:
-                            break
-                        elif not self.board.check_index_available(new_index):
-                            if self.board.get_piece(new_index).color != self.color:
-                                if type(self.board.get_piece(new_index)) in [Queen, Bishop]:
-                                    return True
         pawn_moves = [(-1, -1), (1, -1)] if self.color == "white" else [(1, 1), (-1, 1)]
         for direction in pawn_moves:
             new_index = index_[0] + direction[0], index_[1] + direction[1]
