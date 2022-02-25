@@ -59,9 +59,9 @@ class Checker:
                             elif blocked := not self.board.check_index_available(new_index):
                                 if ((piece := self.board.get_piece(new_index)).color != self.color
                                         and type(piece) in [Queen, Bishop]):
-                                    if not (cond := type(piece := self.board.get_piece((index_[0] + direction[0] * length, index_[1] + direction[1] * length))) in [Knight, Rook]):
-                                        pinned_squares.extend([(index_[0] + direction[0] * _, index_[1] + direction[1] * _) for _ in range(1, new_length + 1)])
-                                    pinned_pieces.append((piece.index, []) if cond else (piece.index, pinned_squares))
+                                    if not type(piece := self.board.get_piece((index_[0] + direction[0] * length, index_[1] + direction[1] * length))) in [Knight, Rook]:
+                                        pinned_squares.extend((index_[0] + direction[0] * _, index_[1] + direction[1] * _) for _ in range(1, new_length + 1))
+                                    pinned_pieces.append((piece.index, pinned_squares))
                                 break
         for direction in [(-1, 0), (0, -1), (0, 1), (1, 0)]:  # rook directions
             length = 0
@@ -74,7 +74,7 @@ class Checker:
                 elif not self.board.check_index_available(new_index):
                     piece_length = length
                     if self.board.get_piece(new_index).color != self.color:
-                        if rook_check := (type(self.board.get_piece(new_index)) in [Queen, Rook]):
+                        if type(self.board.get_piece(new_index)) in [Queen, Rook]:
                             possible_squares.extend([(index_[0] + direction[0] * _, index_[1] + direction[1] * _) for _ in range(length)])
                         else:
                             break
@@ -95,9 +95,9 @@ class Checker:
                                 if (piece := self.board.get_piece(new_index)).color != self.color and type(piece) in [Queen, Rook]:
                                     # If there is a new ennemi piece
                                     piece = self.board.get_piece((index_[0] + direction[0] * length, index_[1] + direction[1] * length))
-                                    if not (cond := type(piece) in [Knight, Bishop]):
-                                        pinned_squares.extend([self.board.get_piece((index_[0] + direction[0] * _, index_[1] + direction[1] * _)) for _ in range(1, new_length+1)])
-                                    pinned_pieces.append((piece.index, []) if cond else (piece.index, pinned_squares))
+                                    if not type(piece) in [Knight, Bishop]:
+                                        pinned_squares.extend((index_[0] + direction[0] * _, index_[1] + direction[1] * _) for _ in range(1, new_length+1))
+                                    pinned_pieces.append((piece.index, pinned_squares))
                                 break
         pawn_moves = [(-1, -1), (1, -1)] if self.color == "white" else [(1, 1), (-1, 1)]
         for direction in pawn_moves:
