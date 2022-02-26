@@ -57,6 +57,10 @@ class Checker:
                                     if type(self.board.get_piece(new_index)) in [Queen, Bishop]:
                                         bishop_check = True
                                         break
+                                    else:
+                                        break
+                                else:
+                                    break
                     else:   # If there is a friendly piece
                         for new_length in range(piece_length + 1, 8):    # We keep the loop going
                             new_index = (index_[0] + direction[0] * new_length, index_[1] + direction[1] * new_length)
@@ -109,6 +113,10 @@ class Checker:
                                 if self.board.get_piece(new_index).color != self.color:
                                     if type(self.board.get_piece(new_index)) in [Queen, Rook]:
                                         rook_check = True
+                                    else:
+                                        break
+                                else:
+                                    break
                     else:   # If there is a friendly piece
                         for new_length in range(piece_length + 1, 8):    # We keep the loop going
                             new_index = (index_[0] + direction[0] * new_length, index_[1] + direction[1] * new_length)
