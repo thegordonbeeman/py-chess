@@ -237,7 +237,6 @@ class Board:
         self.in_check, self.possible_squares, self.pinned_pieces = self.checker.check_square_pins(index, str(self.turn))
         # print(self.in_check, self.possible_squares, self.pinned_pieces)
         if self.selected is not None:
-            pos = (self.pos[0] + self.selected[0] * self.tile_size, self.pos[1] + self.selected[1] * self.tile_size)
             self.targets = self.piece_selected.generate_move_available()
 
             for target in self.targets:

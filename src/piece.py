@@ -251,9 +251,6 @@ class Pawn(Piece):
             if not self.first_move_done and self.board.check_index_available(
                     index := (self.index[0], self.index[1] + 2 * moves[1])):
                 indexes.append(index)
-
-        # TODO rêgle en passant
-
         for move in kills:
             index = self.index[0] + move[0], self.index[1] + move[1]
             if index == self.board.en_passant:
@@ -282,7 +279,6 @@ class Pawn(Piece):
         for _ in range(len(self.board.pinned_pieces)):
             if self.index == self.board.pinned_pieces[_][0]:
                 for __ in range(len(indexes)):
-                    # print(self.board.pinned_pieces[_][1], indexes[__])
                     if indexes[__] in self.board.pinned_pieces[_][1]:
                         real_indexes.append(indexes[__])
                 return [index_to_pos(index) for index in real_indexes]

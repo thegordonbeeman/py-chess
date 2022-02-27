@@ -1,5 +1,4 @@
 import pygame as pg
-
 from .board import Board
 from .utils import extend_rect, darker
 

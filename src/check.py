@@ -80,7 +80,7 @@ class Checker:
                     if self.board.get_piece(new_index).color != self.color:    # If there is an ennemi piece
                         if type(self.board.get_piece(new_index)) in attacking_pieces:
                             check = True
-                            for _ in range(length+1):
+                            for _ in range(length):
                                 possible_squares.append((index_[0] + direction[0] * _, index_[1] + direction[1] * _))
                         else:
                             break
