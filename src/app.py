@@ -1,6 +1,6 @@
 import pygame as pg
 from .board import Board
-from .utils import extend_rect, darker
+from .utils import extend_rect, lighter
 
 
 class App:
@@ -59,7 +59,6 @@ class App:
         self.subtitle = self.subtitle_font.render("It's a draw." if self.finality == "Stalemate"
                                                   else f"{(self.board.turn[0]).capitalize()+self.board.turn[1:]} "
                                                        f"won by checkmate.", True, (0, 0, 0))
-        self.background.fill(self.board.white)
         self.title_rect = self.title.get_rect(center=self.title_rect.center)
         self.subtitle_rect = self.subtitle.get_rect(center=self.subtitle_rect.center)
 
@@ -100,14 +99,14 @@ class App:
             if self.ended_game:
                 self.screen.blit(self.bg_on_end, (0, 0))
                 self.screen.blit(self.layer, (0, 0))
-                self.screen.blit(self.background, self.bg_rect)
+                pg.draw.rect(self.screen, self.board.white, self.bg_rect, border_radius=15)
 
                 self.screen.blit(self.title, self.title_rect)
                 self.screen.blit(self.subtitle, self.subtitle_rect)
-                if self.button_rect.collidepoint(pg.mouse.get_pos()):
-                    pg.draw.rect(self.screen, darker(self.board.select_color, 20), self.bg_button)
+                if self.bg_button.collidepoint(pg.mouse.get_pos()):
+                    pg.draw.rect(self.screen, lighter(self.board.black, 20), self.bg_button, border_radius=15)
                 else:
-                    pg.draw.rect(self.screen, self.board.select_color, self.bg_button)
+                    pg.draw.rect(self.screen, self.board.black, self.bg_button, border_radius=15)
                 self.screen.blit(self.button, self.button_rect)
 
                 pg.display.update()
