@@ -48,7 +48,16 @@ class Board:
             Queen(self, (3, 7), "white")
         ]
         self.checker = Checker(self)
-        self.board = [[0 for _ in range(8)] for _ in range(8)]
+        self.board = []
+        all_indexes = [piece.index for piece in self.pieces]
+        for r in range(8):
+            row = []
+            for c in range(8):
+                if (r, c) in all_indexes:
+                    row.append(self.pieces[all_indexes.index((r, c))])
+                else:
+                    row.append(0)
+            self.board.append(row)
 
         # TILES --------
         self.tile_size: int = 110
@@ -73,10 +82,12 @@ class Board:
         # selection
         self.selected = None
         self.piece_selected: Union[Piece, None] = None
+        self.piece_selected_index = None
         self.en_passant = None
         self.possible_squares = []
         self.in_check = False
         self.pinned_pieces = []
+        self.ended_game = False
 
         # Temporaire, pour montrer quelle case tu selectionnes
         self.selected_surf = pg.Surface((self.tile_size, self.tile_size), pg.SRCALPHA)
@@ -102,6 +113,7 @@ class Board:
             for piece, image in dict_.items():
                 self.promotion_buttons[color][piece] = smoothscale_sq(image, self.tile_size)
                 self.promotion_buttons_hb[color][piece] = smoothscale_sq(image, self.tile_size).get_rect()
+        self.all_pieces_and_moves = self.generate_all_moves()
 
     def get_piece(self, index: tuple[int, int]) -> Union[Piece, int]:
         return self.board[index[0]][index[1]]
@@ -127,43 +139,55 @@ class Board:
             return False
         return True
 
-    def select(self, pos: tuple[int, int]):
+    def handle_clicks(self, pos: tuple[int, int]):
+        index = ((pos[0] - 60) // 110, (pos[1] - 60) // 110)
+        for piece in range(len(self.all_pieces_and_moves)):
+            if index == self.all_pieces_and_moves[piece][0]:    # if we are selecting a piece
+                self.piece_selected_index = piece
+                self.draw_moves(self.all_pieces_and_moves[piece][1])
+                self.select(index)
+        if self.piece_selected is not None:
+            if index in self.all_pieces_and_moves[self.piece_selected_index][1]:
+                self.update_everything(index)
+
+    def draw_moves(self, drawing_list):
+        for target in drawing_list:
+            pos = (self.pos[0] + target[0] * self.tile_size, self.pos[1] + target[1] * self.tile_size)
+            if self.get_piece(target) == 0:
+                self.screen.blit(self.go_square, pos)
+            else:
+                self.screen.blit(self.kill_square, pos)
+
+    def select(self, index: (int, int)):
         for piece in self.pieces:
-            if piece.rect.collidepoint(pos) and piece.color == self.turn:
-                self.selected = piece.index
+            if piece.index == index and piece.color == self.turn:
+                self.selected = index
                 self.piece_selected = piece
                 return
         self.selected = None
 
-    def next_turn(self):
-        self.selected = None
+    def update_everything(self, index):
+        self.piece_selected.move(index)
+        while self.selecting_promotion:
+            for key, image in self.promotion_buttons[self.object_promoted.color].items():
+                hitbox = self.promotion_buttons_hb[self.object_promoted.color][key]
+                pg.draw.rect(self.screen, (255, 255, 255), hitbox)
+                pg.draw.rect(self.screen, (0, 255, 0), hitbox, 3)
+                self.screen.blit(image, hitbox)
+                pg.display.update()
+            for event in pg.event.get():
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        for key, hb in self.promotion_buttons_hb[self.object_promoted.color].items():
+                            if hb.collidepoint(event.pos):
+                                return self.finish_promotion(key)
+                            pg.display.update()
+        self.update(index)
+        self.en_passant = self.check_en_passant(self.piece_selected, index)
         self.piece_selected = None
-        self.turn = {"white": "black", "black": "white"}[self.turn]
-        self.targets = []
-
-    def check_en_passant(self, piece, index) -> Union[None, tuple[int, int]]:
-        if isinstance(piece, Pawn):
-            if piece.index[1] == (6 if piece.color == 'white' else 1):
-                if self.targets[index][1] == (4 if piece.color == 'white' else 3):
-                    return piece.index[0], piece.index[1] + (-1 if piece.color == 'white' else 1)
-
-    def handle_clicks(self, pos: tuple[int, int]):
-        if not self.selecting_promotion:
-            if len(self.targets) != 0 and self.piece_selected is not None:
-                target_rects = [pg.Rect((self.pos[0] + index[0] * self.tile_size,
-                                         self.pos[1] + index[1] * self.tile_size),
-                                        (self.tile_size, self.tile_size)) for index in self.targets]
-                for index, rect in enumerate(target_rects):
-                    if rect.collidepoint(pos):
-                        self.en_passant = self.check_en_passant(self.piece_selected, index)
-                        self.piece_selected.move(self.targets[index])
-                        return self.next_turn()
-                self.select(pos)
-            self.select(pos)
-        else:
-            for key, hb in self.promotion_buttons_hb[self.object_promoted.color].items():
-                if hb.collidepoint(pos):
-                    return self.finish_promotion(key)
+        self.next_turn()
+        self.in_check, self.possible_squares, self.pinned_pieces = self.checker.check_square_pins(self.get_king(self.turn).index, self.turn)
+        self.all_pieces_and_moves = self.generate_all_moves()
 
     def init_promotion(self, object_promoted: Piece, next_pos: (int, int)):
         self.object_promoted = object_promoted
@@ -182,15 +206,7 @@ class Board:
         self.selecting_promotion = False
         self.object_promoted = None
 
-    def generate_moves(self, color: str):
-        moves = []
-        for piece in self.pieces:
-            if piece.color != color:
-                continue
-            moves.extend(piece.generate_move_available())
-        return moves
-
-    def update(self):
+    def update(self, move):
         self.targets = []
         # update the board
         self.board = []
@@ -229,29 +245,34 @@ class Board:
         for piece in self.pieces:
             piece.render(self.screen, self.tile_size, self.pos)
 
-        king_index = (self.get_king(self.turn).index[0], self.get_king(self.turn).index[1])
-        self.in_check, self.possible_squares, self.pinned_pieces = self.checker.check_square_pins(king_index, str(self.turn))
-        if self.selected is not None:
-            self.targets = self.piece_selected.generate_move_available()
+    def check_en_passant(self, piece, index) -> Union[None, tuple[int, int]]:
+        if isinstance(piece, Pawn):
+            if piece.index[1] == (6 if piece.color == 'white' else 1):
+                if self.targets[index][1] == (4 if piece.color == 'white' else 3):
+                    return piece.index[0], piece.index[1] + (-1 if piece.color == 'white' else 1)
 
-            for index in self.targets:
-                pos = (self.pos[0] + index[0] * self.tile_size, self.pos[1] + index[1] * self.tile_size)
+    def next_turn(self):
+        self.selected = None
+        self.piece_selected = None
+        self.turn = {"white": "black", "black": "white"}[self.turn]
+        self.targets = []
 
-                if self.get_piece(index) == 0:
-                    self.screen.blit(self.go_square, pos)
-                else:
-                    self.screen.blit(self.kill_square, pos)
+    def generate_all_moves(self) -> list:    # [[[piece1], [move1, move2, ...], [[piece2], [...], ...]]
+        all_pieces_and_moves = []
+        self.ended_game = True
+        for piece in self.pieces:
+            move_list = []
+            if piece.color == self.turn:
+                move_list = piece.generate_move_available()
+                if move_list:
+                    self.ended_game = False
+                all_pieces_and_moves.append([piece.index, move_list])
+        return all_pieces_and_moves
 
-        if self.selecting_promotion:
-            for key, image in self.promotion_buttons[self.object_promoted.color].items():
-                hitbox = self.promotion_buttons_hb[self.object_promoted.color][key]
-                pg.draw.rect(self.screen, (255, 255, 255), hitbox)
-                pg.draw.rect(self.screen, (0, 255, 0), hitbox, 3)
-                self.screen.blit(image, hitbox)
+    """
+    Debug : show the board in the console
+    for row in self.board:
+        print("\t".join([str(col) for col in row]))
+    print("\n")
+    """
 
-        """
-        Debug : show the board in the console
-        for row in self.board:
-            print("\t".join([str(col) for col in row]))
-        print("\n")
-        """

@@ -39,11 +39,11 @@ class App:
         # background
         self.background = pg.Surface((300, 300))
         # rects
-        self.bg_rect = self.background.get_rect(center=(self.screen.get_width()//2, self.screen.get_height()//2))
+        self.bg_rect = self.background.get_rect(center=(self.screen.get_width() // 2, self.screen.get_height() // 2))
         self.title_rect = self.background.get_rect(center=(self.bg_rect.x + self.bg_rect.w // 2,
                                                            self.bg_rect.y + self.bg_rect.h / 4))
         self.subtitle_rect = self.background.get_rect(center=(self.bg_rect.x + self.bg_rect.w // 2,
-                                                              self.bg_rect.y + self.bg_rect.h//2))
+                                                              self.bg_rect.y + self.bg_rect.h // 2))
         self.button_rect = self.button.get_rect(center=(self.bg_rect.x + self.bg_rect.w // 2,
                                                         self.bg_rect.y + self.bg_rect.h * 3 / 4))
         self.bg_button = extend_rect(self.button_rect, 10)
@@ -57,7 +57,7 @@ class App:
         self.bg_on_end = self.screen.copy()
         self.title = self.title_font.render(f"{self.finality} !", True, (0, 0, 0))
         self.subtitle = self.subtitle_font.render("It's a draw." if self.finality == "Stalemate"
-                                                  else f"{(self.board.turn[0]).capitalize()+self.board.turn[1:]} "
+                                                  else f"{(self.board.turn[0]).capitalize() + self.board.turn[1:]} "
                                                        f"won by checkmate.", True, (0, 0, 0))
         self.background.fill(self.board.white)
         self.title_rect = self.title.get_rect(center=self.title_rect.center)
@@ -65,7 +65,7 @@ class App:
 
     def run(self):
         self.screen.fill((49, 46, 43))
-        self.board.update()
+        self.board.update(None)
         pg.display.update()
 
         while self.running:
@@ -76,28 +76,27 @@ class App:
 
                 if event.type == pg.MOUSEBUTTONDOWN:
                     if event.button == 1:
-                        if not self.ended_game:
+                        if not self.board.ended_game:
                             self.board.handle_clicks(event.pos)
-                            self.screen.fill((49, 46, 43))
-                            self.board.update()
                             pg.display.update()
 
-                            if len(self.board.generate_moves(self.board.turn)) == 0:
-                                if self.board.get_check_king(self.board.get_king(self.board.turn).index,
-                                                             self.board.turn):
-                                    self.finality = "Checkmate"
-                                else:
-                                    self.finality = "Stalemate"
-                                self.ended_game = True
-                                self.init_ending_ui()
                         else:
+                            if self.board.get_check_king(self.board.get_king(self.board.turn).index,
+                                                         self.board.turn):
+                                self.finality = "Checkmate"
+                            else:
+                                self.finality = "Stalemate"
+                            self.ended_game = True
+                            self.init_ending_ui()
                             if self.bg_rect.collidepoint(event.pos):
                                 self.ended_game = False
+                                self.screen.fill((49, 46, 43))
                                 self.board = Board(self.screen)
-                                self.board.update()
+                                self.board.update(None)
                                 pg.display.update()
 
-            if self.ended_game:
+            if self.board.ended_game:
+                self.init_ending_ui()
                 self.screen.blit(self.bg_on_end, (0, 0))
                 self.screen.blit(self.layer, (0, 0))
                 self.screen.blit(self.background, self.bg_rect)

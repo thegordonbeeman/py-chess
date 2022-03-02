@@ -23,12 +23,10 @@ class Piece:
     def generate_move_available(self):
         pass
 
-    def move(self, new_position: str):
+    def move(self, new_position: (int, int)):
         # check for eating :
         if not self.board.check_index_available(new_position):
-            piece = self.board.get_piece(new_position)
-            if isinstance(piece, Piece):
-                self.board.pieces.remove(piece)
+            self.board.pieces.remove(self.board.get_piece(new_position))
 
         # need to test if the position is available before calling this function
         self.index = new_position
@@ -289,8 +287,7 @@ class Pawn(Piece):
                                                                                       else 1)]))
         self.en_passant = False, (0, 0)
         # Promotion
-        if (self.color == "black" and new_position[1] == 7) \
-                or (self.color == "white" and new_position[1] == 0):
+        if (self.color == "black" and new_position[1] == 7) or (self.color == "white" and new_position[1] == 0):
             self.board.init_promotion(self, new_position)
         return super(Pawn, self).move(new_position)
 
