@@ -1,5 +1,4 @@
 from .piece import Knight, Rook, Bishop, Queen, Pawn, King
-from copy import copy
 
 
 class Checker:
@@ -7,10 +6,6 @@ class Checker:
     def __init__(self, board_instance):
         self.board = board_instance
         self.color = "white"
-
-    def get_current_check(self, color):
-        index = self.board.get_king(color).index
-        return self.check_square(index, color)
 
     def check_square_pins(self, index_: tuple[int, int], color: str):
         pinned_pieces = []
@@ -125,6 +120,3 @@ class Checker:
                                     blocked = True
                                     break
         return check, possible_squares, pinned_pieces
-
-
-

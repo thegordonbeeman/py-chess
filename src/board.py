@@ -1,9 +1,8 @@
 import pygame as pg
 import pygame.gfxdraw
 from typing import Union
-from copy import copy
 
-from .utils import pos_to_index, index_to_pos, load_img, smoothscale_sq
+from .utils import load_img, smoothscale_sq
 from .check import Checker
 from .piece import (
     Piece,
@@ -33,16 +32,20 @@ class Board:
 
         # PIECES -------
         self.pieces: list[Piece] = [
-            Pawn(self, "a7", "black"), Pawn(self, "b7", "black"), Pawn(self, "c7", "black"), Pawn(self, "d7", "black"),
-            Pawn(self, "e7", "black"), Pawn(self, "f7", "black"), Pawn(self, "g7", "black"), Pawn(self, "h7", "black"),
-            Rook(self, "a8", "black"), Rook(self, "h8", "black"), Bishop(self, "c8", "black"),
-            Bishop(self, "f8", "black"), Queen(self, "d8", "black"), King(self, "e8", "black"),
-            Knight(self, "b8", "black"), Knight(self, "g8", "black"), Pawn(self, "a2", "white"),
-            Pawn(self, "b2", "white"), Pawn(self, "c2", "white"), Pawn(self, "d2", "white"), Pawn(self, "e2", "white"),
-            Pawn(self, "f2", "white"), Pawn(self, "g2", "white"), Pawn(self, "h2", "white"), Rook(self, "a1", "white"),
-            Rook(self, "h1", "white"), Knight(self, "b1", "white"), Knight(self, "g1", "white"),
-            Bishop(self, "c1", "white"), Bishop(self, "f1", "white"), King(self, "e1", "white"),
-            Queen(self, "d1", "white")
+            Pawn(self, (0, 1), "black"), Pawn(self, (1, 1), "black"), Pawn(self, (2, 1), "black"), Pawn(self, (3, 1), "black"),
+            Pawn(self, (4, 1), "black"), Pawn(self, (5, 1), "black"), Pawn(self, (6, 1), "black"), Pawn(self, (7, 1), "black"),
+            Rook(self, (0, 0), "black"), Rook(self, (7, 0), "black"), Bishop(self, (2, 0), "black"),
+            Bishop(self, (5, 0), "black"), Queen(self, (3, 0), "black"),
+            King(self, (4, 0), "black"),
+            Knight(self, (1, 0), "black"), Knight(self, (6, 0), "black"),
+            Pawn(self, (0, 6), "white"), Pawn(self, (1, 6), "white"), Pawn(self, (2, 6), "white"),
+            Pawn(self, (3, 6), "white"), Pawn(self, (4, 6), "white"), Pawn(self, (5, 6), "white"),
+            Pawn(self, (6, 6), "white"), Pawn(self, (7, 6), "white"),
+            Rook(self, (0, 7), "white"),
+            Rook(self, (7, 7), "white"), Knight(self, (1, 7), "white"), Knight(self, (6, 7), "white"),
+            Bishop(self, (2, 7), "white"), Bishop(self, (5, 7), "white"),
+            King(self, (4, 7), "white"),
+            Queen(self, (3, 7), "white")
         ]
         self.checker = Checker(self)
         self.board = [[0 for _ in range(8)] for _ in range(8)]
@@ -81,6 +84,7 @@ class Board:
         self.selected_surf.fill((0, 255, 0))
 
         # promotion
+        self.selecting_pieces = False
         self.selecting_promotion: bool = False
         self.object_promoted: Union[None, Piece] = None
         self.promotion_buttons: dict[str, dict[str, pg.Surface]] = {
@@ -116,14 +120,6 @@ class Board:
             return True
         return False
 
-    def check_pos_available(self, position: str) -> bool:
-        try:
-            pos_to_index(position)
-        except Exception as e:
-            print(e)
-            return False
-        return self.check_index_available(pos_to_index(position))
-
     def check_index_available(self, index: tuple[int, int]) -> bool:
         if index[0] > 7 or index[0] < 0 or index[1] < 0 or index[1] > 7:
             return False
@@ -148,14 +144,14 @@ class Board:
     def check_en_passant(self, piece, index) -> Union[None, tuple[int, int]]:
         if isinstance(piece, Pawn):
             if piece.index[1] == (6 if piece.color == 'white' else 1):
-                if self.targets[index][1] == ('4' if piece.color == 'white' else '5'):
+                if self.targets[index][1] == (4 if piece.color == 'white' else 3):
                     return piece.index[0], piece.index[1] + (-1 if piece.color == 'white' else 1)
 
     def handle_clicks(self, pos: tuple[int, int]):
         if not self.selecting_promotion:
             if len(self.targets) != 0 and self.piece_selected is not None:
-                target_rects = [pg.Rect((self.pos[0] + pos_to_index(index)[0] * self.tile_size,
-                                         self.pos[1] + pos_to_index(index)[1] * self.tile_size),
+                target_rects = [pg.Rect((self.pos[0] + index[0] * self.tile_size,
+                                         self.pos[1] + index[1] * self.tile_size),
                                         (self.tile_size, self.tile_size)) for index in self.targets]
                 for index, rect in enumerate(target_rects):
                     if rect.collidepoint(pos):
@@ -169,10 +165,10 @@ class Board:
                 if hb.collidepoint(pos):
                     return self.finish_promotion(key)
 
-    def init_promotion(self, object_promoted: Piece, next_pos: str):
+    def init_promotion(self, object_promoted: Piece, next_pos: (int, int)):
         self.object_promoted = object_promoted
         self.selecting_promotion = True
-        index_promotion = pos_to_index(next_pos)
+        index_promotion = next_pos
         position = {"Knight": pg.Vector2(0, self.tile_size), "Queen": pg.Vector2(0, self.tile_size*3),
                     "Bishop": pg.Vector2(0, self.tile_size*2), "Rook": pg.Vector2(0, self.tile_size*4)}
         for key, hitbox in self.promotion_buttons_hb[object_promoted.color].items():
@@ -181,7 +177,7 @@ class Board:
                 position[key] if object_promoted.color == "white" else -position[key]) + pg.Vector2(self.pos)
 
     def finish_promotion(self, tag: str):
-        self.pieces.append(eval(tag)(self, self.object_promoted.position, self.object_promoted.color))
+        self.pieces.append(eval(tag)(self, self.object_promoted.index, self.object_promoted.color))
         self.pieces.remove(self.object_promoted)
         self.selecting_promotion = False
         self.object_promoted = None
@@ -202,8 +198,8 @@ class Board:
         for r in range(8):
             row = []
             for c in range(8):
-                if [r, c] in all_indexes:
-                    row.append(self.pieces[all_indexes.index([r, c])])
+                if (r, c) in all_indexes:
+                    row.append(self.pieces[all_indexes.index((r, c))])
                 else:
                     row.append(0)
             self.board.append(row)
@@ -233,17 +229,15 @@ class Board:
         for piece in self.pieces:
             piece.render(self.screen, self.tile_size, self.pos)
 
-        index = (self.get_king(self.turn).index[0], self.get_king(self.turn).index[1])
-        self.in_check, self.possible_squares, self.pinned_pieces = self.checker.check_square_pins(index, str(self.turn))
-        # print(self.in_check, self.possible_squares, self.pinned_pieces)
+        king_index = (self.get_king(self.turn).index[0], self.get_king(self.turn).index[1])
+        self.in_check, self.possible_squares, self.pinned_pieces = self.checker.check_square_pins(king_index, str(self.turn))
         if self.selected is not None:
             self.targets = self.piece_selected.generate_move_available()
 
-            for target in self.targets:
-                index = pos_to_index(target)
+            for index in self.targets:
                 pos = (self.pos[0] + index[0] * self.tile_size, self.pos[1] + index[1] * self.tile_size)
 
-                if self.get_piece(pos_to_index(target)) == 0:
+                if self.get_piece(index) == 0:
                     self.screen.blit(self.go_square, pos)
                 else:
                     self.screen.blit(self.kill_square, pos)

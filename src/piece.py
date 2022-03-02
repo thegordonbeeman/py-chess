@@ -1,17 +1,14 @@
 import pygame as pg
-from typing import Union
-from .utils import pos_to_index, load_img, smoothscale_sq, index_to_pos
+from .utils import load_img, smoothscale_sq
 
 
 class Piece:
 
-    def __init__(self, board, name: str, position: Union[tuple[int, int], str], img: pg.Surface, color: str):
+    def __init__(self, board, name: str, position: (int, int), img: pg.Surface, color: str):
         self.name = name  # name : eg. bishop, rook, queen...
         self.color = color
         self.board = board
-
-        self.position = position
-        self.index = pos_to_index(self.position)
+        self.index = position
 
         self.image = img
         self.scaled_img = img
@@ -28,18 +25,16 @@ class Piece:
 
     def move(self, new_position: str):
         # check for eating :
-        if not self.board.check_pos_available(new_position):
-            piece = self.board.get_piece(pos_to_index(new_position))
+        if not self.board.check_index_available(new_position):
+            piece = self.board.get_piece(new_position)
             if isinstance(piece, Piece):
                 self.board.pieces.remove(piece)
 
         # need to test if the position is available before calling this function
-        self.position = new_position
-        self.index = pos_to_index(self.position)
+        self.index = new_position
         self.first_move_done = True
 
     def render(self, screen: pg.Surface, tile_size: int, pos_board: tuple[int, int]):
-        self.index = pos_to_index(self.position)
         # indexes are reversed because index = [row, col] and board = [row[col, col, ...], row[...]...]
         if self.tile_size != tile_size:
             self.tile_size = tile_size
@@ -56,7 +51,7 @@ class Bishop(Piece):
                                      load_img("./res/13.png") if color == "black" else load_img("./res/23.png"),
                                      color)
 
-    def generate_move_available(self):
+    def generate_move_available(self) -> list[tuple[int, int]]:
         directions = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
         indexes = []
         real_indexes = []
@@ -74,16 +69,16 @@ class Bishop(Piece):
             for _ in range(len(indexes)):
                 if indexes[_] in self.board.possible_squares:
                     real_indexes.append(indexes[_])
-            return [index_to_pos(index) for index in real_indexes]
+            return real_indexes
         for _ in range(len(self.board.pinned_pieces)):
             if self.index == self.board.pinned_pieces[_][0]:
                 for __ in range(len(indexes)):
                     # print(self.board.pinned_pieces[_][1], indexes[__])
                     if indexes[__] in self.board.pinned_pieces[_][1]:
                         real_indexes.append(indexes[__])
-                return [index_to_pos(index) for index in real_indexes]
+                return real_indexes
         else:
-            return [index_to_pos(index) for index in indexes]
+            return indexes
 
 
 class Queen(Piece):
@@ -93,7 +88,7 @@ class Queen(Piece):
                                     load_img("res/15.png") if color == "black" else load_img("res/25.png"),
                                     color)
 
-    def generate_move_available(self):
+    def generate_move_available(self) -> list[tuple[int, int]]:
         directions = [(-1, 0), (0, -1), (0, 1), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
         indexes = []
         real_indexes = []
@@ -111,16 +106,16 @@ class Queen(Piece):
             for _ in range(len(indexes)):
                 if indexes[_] in self.board.possible_squares:
                     real_indexes.append(indexes[_])
-            return [index_to_pos(index) for index in real_indexes]
+            return real_indexes
         for _ in range(len(self.board.pinned_pieces)):
             if self.index == self.board.pinned_pieces[_][0]:
                 for __ in range(len(indexes)):
                     # print(self.board.pinned_pieces[_][1], indexes[__])
                     if indexes[__] in self.board.pinned_pieces[_][1]:
                         real_indexes.append(indexes[__])
-                return [index_to_pos(index) for index in real_indexes]
+                return real_indexes
         else:
-            return [index_to_pos(index) for index in indexes]
+            return indexes
 
 
 class King(Piece):
@@ -168,15 +163,15 @@ class King(Piece):
 
         return castle_pos
     
-    def move(self, new_position: str):
+    def move(self, new_position: (int, int)):
         castle = self.castle()
         if len(castle) > 0:
             for castle_dict in castle:
-                if list(pos_to_index(new_position)) == castle_dict["king"]:
-                    self.board.get_piece(castle_dict["former_rook"]).move(index_to_pos(tuple(castle_dict["rook"])))
+                if list(new_position) == castle_dict["king"]:
+                    self.board.get_piece(castle_dict["former_rook"]).move(tuple(castle_dict["rook"]))
         return super(King, self).move(new_position)
 
-    def generate_move_available(self):
+    def generate_move_available(self) -> list[tuple[int, int]]:
         moves = [(0, 1), (0, -1), (1, 0), (-1, 0), (1, 1), (-1, -1), (1, -1), (-1, 1)]
         indexes = []
         for move in moves:
@@ -193,7 +188,7 @@ class King(Piece):
             indexes.append(index)
         for castle_dict in self.castle():
             indexes.append(tuple(castle_dict["king"]))
-        return [index_to_pos(index) for index in indexes]
+        return indexes
 
 
 class Knight(Piece):
@@ -203,7 +198,7 @@ class Knight(Piece):
                                      load_img("res/12.png") if color == "black" else load_img("res/22.png"),
                                      color)
 
-    def generate_move_available(self) -> list[str]:
+    def generate_move_available(self) -> list[tuple[int, int]]:
         moves = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1)]
         indexes = []
         real_indexes = []
@@ -220,16 +215,16 @@ class Knight(Piece):
             for _ in range(len(indexes)):
                 if indexes[_] in self.board.possible_squares:
                     real_indexes.append(indexes[_])
-            return [index_to_pos(index) for index in real_indexes]
+            return real_indexes
         for _ in range(len(self.board.pinned_pieces)):
             if self.index == self.board.pinned_pieces[_][0]:
                 for __ in range(len(indexes)):
                     # print(self.board.pinned_pieces[_][1], indexes[__])
                     if indexes[__] in self.board.pinned_pieces[_][1]:
                         real_indexes.append(indexes[__])
-                return [index_to_pos(index) for index in real_indexes]
+                return real_indexes
         else:
-            return [index_to_pos(index) for index in indexes]
+            return indexes
 
 
 class Pawn(Piece):
@@ -240,7 +235,7 @@ class Pawn(Piece):
                                    color)
         self.en_passant = False, (0, 0)
 
-    def generate_move_available(self) -> list[str]:
+    def generate_move_available(self) -> list[tuple[int, int]]:
         moves = (0, 1) if self.color == "black" else (0, -1)
         kills = [(1, 1), (-1, 1)] if self.color == "black" else [(1, -1), (-1, -1)]
         indexes = []
@@ -275,26 +270,27 @@ class Pawn(Piece):
             for _ in range(len(indexes)):
                 if indexes[_] in self.board.possible_squares:
                     real_indexes.append(indexes[_])
-            return [index_to_pos(index) for index in real_indexes]
+            return real_indexes
         for _ in range(len(self.board.pinned_pieces)):
             if self.index == self.board.pinned_pieces[_][0]:
                 for __ in range(len(indexes)):
                     if indexes[__] in self.board.pinned_pieces[_][1]:
                         real_indexes.append(indexes[__])
-                return [index_to_pos(index) for index in real_indexes]
+                return real_indexes
         else:
-            return [index_to_pos(index) for index in indexes]
+            return indexes
 
     def move(self, new_position: str):
+        print(new_position)
         if self.en_passant[0]:
-            if list(pos_to_index(new_position)) == list(self.en_passant[1]):
+            if list(new_position) == list(self.en_passant[1]):
                 self.board.pieces.remove(self.board.get_piece([self.en_passant[1][0],
                                                                self.en_passant[1][1]+(-1 if self.color == "black"
                                                                                       else 1)]))
         self.en_passant = False, (0, 0)
         # Promotion
-        if (self.color == "black" and pos_to_index(new_position)[1] == 7) \
-                or (self.color == "white" and pos_to_index(new_position)[1] == 0):
+        if (self.color == "black" and new_position[1] == 7) \
+                or (self.color == "white" and new_position[1] == 0):
             self.board.init_promotion(self, new_position)
         return super(Pawn, self).move(new_position)
 
@@ -306,7 +302,7 @@ class Rook(Piece):
                                    load_img("res/14.png") if color == "black" else load_img("res/24.png"),
                                    color)
 
-    def generate_move_available(self) -> list[str]:
+    def generate_move_available(self) -> list[tuple[int, int]]:
         directions = [(-1, 0), (0, -1), (0, 1), (1, 0)]
         indexes = []
         real_indexes = []
@@ -324,13 +320,13 @@ class Rook(Piece):
             for _ in range(len(indexes)):
                 if indexes[_] in self.board.possible_squares:
                     real_indexes.append(indexes[_])
-            return [index_to_pos(index) for index in real_indexes]
+            return real_indexes
         for _ in range(len(self.board.pinned_pieces)):
             if self.index == self.board.pinned_pieces[_][0]:
                 for __ in range(len(indexes)):
                     # print(self.board.pinned_pieces[_][1], indexes[__])
                     if indexes[__] in self.board.pinned_pieces[_][1]:
                         real_indexes.append(indexes[__])
-                return [index_to_pos(index) for index in real_indexes]
+                return real_indexes
         else:
-            return [index_to_pos(index) for index in indexes]
+            return indexes
