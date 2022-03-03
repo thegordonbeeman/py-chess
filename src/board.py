@@ -167,6 +167,7 @@ class Board:
         self.selected = None
 
     def update_everything(self, index):
+        self.en_passant = self.check_en_passant(self.piece_selected, index)
         self.piece_selected.move(index)
         while self.selecting_promotion:
             for key, image in self.promotion_buttons[self.object_promoted.color].items():
@@ -183,7 +184,6 @@ class Board:
                                 return self.finish_promotion(key)
                             pg.display.update()
         self.update(index)
-        self.en_passant = self.check_en_passant(self.piece_selected, index)
         self.piece_selected = None
         self.next_turn()
         self.in_check, self.possible_squares, self.pinned_pieces = self.checker.check_square_pins(self.get_king(self.turn).index, self.turn)
@@ -248,8 +248,8 @@ class Board:
     def check_en_passant(self, piece, index) -> Union[None, tuple[int, int]]:
         if isinstance(piece, Pawn):
             if piece.index[1] == (6 if piece.color == 'white' else 1):
-                if self.targets[index][1] == (4 if piece.color == 'white' else 3):
-                    return piece.index[0], piece.index[1] + (-1 if piece.color == 'white' else 1)
+                if index[1] == (4 if piece.color == 'white' else 3):
+                    return index[0], index[1] + (1 if piece.color == 'white' else -1)
 
     def next_turn(self):
         self.selected = None
