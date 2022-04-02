@@ -247,18 +247,15 @@ class Pawn(Piece):
         for move in kills:
             index = self.index[0] + move[0], self.index[1] + move[1]
             if index == self.board.en_passant:
-                for i in range(0, 8):
-                    if isinstance(self.board.get_piece((i, 3 if self.color == 'white' else 4)), King) and \
-                            self.board.get_piece((i, 3 if self.color == 'white' else 4)).color == self.color:
-                        for j in range(0, 8):
-                            if not (type(self.board.get_piece((j, 3 if self.color == 'white' else 4))) in [Rook, Queen]
-                                    and self.board.get_piece((j, 3 if self.color == 'white' else 4)
-                                                             ).color != self.color):
-                                indexes.append(index)
-                                self.en_passant = True, self.board.en_passant
-                    else:
-                        indexes.append(index)
-                        self.en_passant = True, self.board.en_passant
+                indexes.append(index)
+                self.en_passant = True, self.board.en_passant
+                print(self.board.get_king(self.color).index[1])
+                if self.board.get_king(self.color).index[1] == (3 if self.color == 'white' else 4):
+                    for i in range(0, 8):
+                        if type(piece := self.board.get_piece((i, 3 if self.color == 'white' else 4))) in [Rook, Queen] and piece.color != self.color:
+                            indexes.remove(index)
+                            self.en_passant = False
+                            break
             elif self.board.check_index_available(index) or not 0 <= index[0] <= 7 or not 0 <= index[1] <= 7:
                 continue
             elif type(piece_on_index := self.board.get_piece(index)) is not int:
