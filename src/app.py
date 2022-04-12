@@ -65,7 +65,7 @@ class App:
 
     def run(self):
         self.screen.fill((49, 46, 43))
-        self.board.update(None)
+        self.board.reset_screen()
         pg.display.update()
 
         while self.running:

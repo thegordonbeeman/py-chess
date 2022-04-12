@@ -144,11 +144,38 @@ class Board:
         for piece in range(len(self.all_pieces_and_moves)):
             if index == self.all_pieces_and_moves[piece][0]:    # if we are selecting a piece
                 self.piece_selected_index = piece
-                self.draw_moves(self.all_pieces_and_moves[piece][1])
                 self.select(index)
+                self.reset_screen()
+                self.draw_moves(self.all_pieces_and_moves[piece][1])
         if self.piece_selected is not None:
             if index in self.all_pieces_and_moves[self.piece_selected_index][1]:
                 self.update_everything(index)
+
+    def reset_screen(self):
+        print(self.selected)
+        for row in range(8):
+            for col in range(8):
+                if row % 2 == 0:
+                    color = self.white if col % 2 == 0 else self.black
+                else:
+                    color = self.black if col % 2 == 0 else self.white
+                if self.selected is not None:
+                    if [col, row] == list(self.selected):
+                        color = self.select_color
+                radius = 8
+                border_bottom_left_radius = radius if [col, row] == [0, 7] else 1
+                border_bottom_right_radius = radius if [col, row] == [7, 7] else 1
+                border_top_left_radius = radius if [col, row] == [0, 0] else 1
+                border_top_right_radius = radius if [col, row] == [7, 0] else 1
+                pg.draw.rect(self.screen, color,
+                             [(self.pos[0] + col * self.tile_size, self.pos[1] + row * self.tile_size),
+                              (self.tile_size, self.tile_size)],
+                             border_bottom_left_radius=border_bottom_left_radius,
+                             border_bottom_right_radius=border_bottom_right_radius,
+                             border_top_left_radius=border_top_left_radius,
+                             border_top_right_radius=border_top_right_radius)
+        for piece in self.pieces:
+            piece.render(self.screen, self.tile_size, self.pos)
 
     def draw_moves(self, drawing_list):
         for target in drawing_list:
@@ -184,6 +211,7 @@ class Board:
                                 return self.finish_promotion(key)
                             pg.display.update()
         self.update(index)
+        self.reset_screen()
         self.piece_selected = None
         self.next_turn()
         self.in_check, self.possible_squares, self.pinned_pieces = self.checker.check_square_pins(self.get_king(self.turn).index, self.turn)
@@ -219,31 +247,6 @@ class Board:
                 else:
                     row.append(0)
             self.board.append(row)
-
-        for row in range(8):
-            for col in range(8):
-                if row % 2 == 0:
-                    color = self.white if col % 2 == 0 else self.black
-                else:
-                    color = self.black if col % 2 == 0 else self.white
-                if self.selected is not None:
-                    if [col, row] == list(self.selected):
-                        color = self.select_color
-                radius = 8
-                border_bottom_left_radius = radius if [col, row] == [0, 7] else 1
-                border_bottom_right_radius = radius if [col, row] == [7, 7] else 1
-                border_top_left_radius = radius if [col, row] == [0, 0] else 1
-                border_top_right_radius = radius if [col, row] == [7, 0] else 1
-                pg.draw.rect(self.screen, color,
-                             [(self.pos[0] + col * self.tile_size, self.pos[1] + row * self.tile_size),
-                              (self.tile_size, self.tile_size)],
-                             border_bottom_left_radius=border_bottom_left_radius,
-                             border_bottom_right_radius=border_bottom_right_radius,
-                             border_top_left_radius=border_top_left_radius,
-                             border_top_right_radius=border_top_right_radius)
-
-        for piece in self.pieces:
-            piece.render(self.screen, self.tile_size, self.pos)
 
     def check_en_passant(self, piece, index) -> Union[None, tuple[int, int]]:
         if isinstance(piece, Pawn):
