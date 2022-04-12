@@ -13,8 +13,10 @@ class Checker:
         directions = [[(-1, -1), (-1, 1), (1, -1), (1, 1)], [(-1, 0), (0, -1), (0, 1), (1, 0)]]
         knight_check, knight_position = self.knight_check(index_)
         pawn_check, pawn_position = self.pawn_check(index_)
-        bishop_check, bishop_possible_squares, bishop_pinned_pieces = self.queen_check(index_, directions[0], [Queen, Bishop], (Knight, Rook))
-        rook_check, rook_possible_squares, rook_pinned_pieces = self.queen_check(index_, directions[1], [Queen, Rook], (Knight, Bishop))
+        bishop_check, bishop_possible_squares, bishop_pinned_pieces = \
+            self.queen_check(index_, directions[0], [Queen, Bishop], (Knight, Rook))
+        rook_check, rook_possible_squares, rook_pinned_pieces = \
+            self.queen_check(index_, directions[1], [Queen, Rook], (Knight, Bishop))
         if bishop_check:
             check = True
             possible_squares = bishop_possible_squares
@@ -104,12 +106,14 @@ class Checker:
                                 if self.board.get_piece(new_index).color != self.color:
                                     # If there is a new ennemi piece
                                     if type(self.board.get_piece(new_index)) in attacking_pieces:
-                                        piece = self.board.get_piece((index_[0] + direction[0] * length, index_[1] + direction[1] * length))
+                                        piece = self.board.get_piece((index_[0] + direction[0] * length,
+                                                                      index_[1] + direction[1] * length))
                                         if type(piece) in defending_pieces:
                                             pinned_pieces.append((piece.index, []))    # We pin the piece
                                         else:
                                             for _ in range(1, new_length+1):
-                                                pinned_squares.append((index_[0] + direction[0] * _, index_[1] + direction[1] * _))
+                                                pinned_squares.append((index_[0] + direction[0] * _,
+                                                                       index_[1] + direction[1] * _))
                                             pinned_pieces.append((piece.index, pinned_squares))
                                         blocked = True
                                         break

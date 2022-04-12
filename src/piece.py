@@ -71,7 +71,6 @@ class Bishop(Piece):
         for _ in range(len(self.board.pinned_pieces)):
             if self.index == self.board.pinned_pieces[_][0]:
                 for __ in range(len(indexes)):
-                    # print(self.board.pinned_pieces[_][1], indexes[__])
                     if indexes[__] in self.board.pinned_pieces[_][1]:
                         real_indexes.append(indexes[__])
                 return real_indexes
@@ -108,7 +107,6 @@ class Queen(Piece):
         for _ in range(len(self.board.pinned_pieces)):
             if self.index == self.board.pinned_pieces[_][0]:
                 for __ in range(len(indexes)):
-                    # print(self.board.pinned_pieces[_][1], indexes[__])
                     if indexes[__] in self.board.pinned_pieces[_][1]:
                         real_indexes.append(indexes[__])
                 return real_indexes
@@ -217,7 +215,6 @@ class Knight(Piece):
         for _ in range(len(self.board.pinned_pieces)):
             if self.index == self.board.pinned_pieces[_][0]:
                 for __ in range(len(indexes)):
-                    # print(self.board.pinned_pieces[_][1], indexes[__])
                     if indexes[__] in self.board.pinned_pieces[_][1]:
                         real_indexes.append(indexes[__])
                 return real_indexes
@@ -249,10 +246,10 @@ class Pawn(Piece):
             if index == self.board.en_passant:
                 indexes.append(index)
                 self.en_passant = True, self.board.en_passant
-                print(self.board.get_king(self.color).index[1])
                 if self.board.get_king(self.color).index[1] == (3 if self.color == 'white' else 4):
                     for i in range(0, 8):
-                        if type(piece := self.board.get_piece((i, 3 if self.color == 'white' else 4))) in [Rook, Queen] and piece.color != self.color:
+                        if type(piece := self.board.get_piece((i, 3 if self.color == 'white' else 4))) in \
+                                [Rook, Queen] and piece.color != self.color:
                             indexes.remove(index)
                             self.en_passant = False
                             break
@@ -276,7 +273,6 @@ class Pawn(Piece):
             return indexes
 
     def move(self, new_position: str):
-        print(new_position)
         if self.en_passant[0]:
             if list(new_position) == list(self.en_passant[1]):
                 self.board.pieces.remove(self.board.get_piece([self.en_passant[1][0],
@@ -318,7 +314,6 @@ class Rook(Piece):
         for _ in range(len(self.board.pinned_pieces)):
             if self.index == self.board.pinned_pieces[_][0]:
                 for __ in range(len(indexes)):
-                    # print(self.board.pinned_pieces[_][1], indexes[__])
                     if indexes[__] in self.board.pinned_pieces[_][1]:
                         real_indexes.append(indexes[__])
                 return real_indexes

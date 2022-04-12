@@ -32,20 +32,18 @@ class Board:
 
         # PIECES -------
         self.pieces: list[Piece] = [
-            Pawn(self, (0, 1), "black"), Pawn(self, (1, 1), "black"), Pawn(self, (2, 1), "black"), Pawn(self, (3, 1), "black"),
-            Pawn(self, (4, 1), "black"), Pawn(self, (5, 1), "black"), Pawn(self, (6, 1), "black"), Pawn(self, (7, 1), "black"),
+            Pawn(self, (0, 1), "black"), Pawn(self, (1, 1), "black"), Pawn(self, (2, 1), "black"),
+            Pawn(self, (3, 1), "black"), Pawn(self, (4, 1), "black"), Pawn(self, (5, 1), "black"),
+            Pawn(self, (6, 1), "black"), Pawn(self, (7, 1), "black"),
             Rook(self, (0, 0), "black"), Rook(self, (7, 0), "black"), Bishop(self, (2, 0), "black"),
-            Bishop(self, (5, 0), "black"), Queen(self, (3, 0), "black"),
-            King(self, (4, 0), "black"),
+            Bishop(self, (5, 0), "black"), Queen(self, (3, 0), "black"), King(self, (4, 0), "black"),
             Knight(self, (1, 0), "black"), Knight(self, (6, 0), "black"),
             Pawn(self, (0, 6), "white"), Pawn(self, (1, 6), "white"), Pawn(self, (2, 6), "white"),
             Pawn(self, (3, 6), "white"), Pawn(self, (4, 6), "white"), Pawn(self, (5, 6), "white"),
             Pawn(self, (6, 6), "white"), Pawn(self, (7, 6), "white"),
-            Rook(self, (0, 7), "white"),
-            Rook(self, (7, 7), "white"), Knight(self, (1, 7), "white"), Knight(self, (6, 7), "white"),
-            Bishop(self, (2, 7), "white"), Bishop(self, (5, 7), "white"),
-            King(self, (4, 7), "white"),
-            Queen(self, (3, 7), "white")
+            Rook(self, (0, 7), "white"), Rook(self, (7, 7), "white"), Knight(self, (1, 7), "white"),
+            Knight(self, (6, 7), "white"), Bishop(self, (2, 7), "white"), Bishop(self, (5, 7), "white"),
+            King(self, (4, 7), "white"), Queen(self, (3, 7), "white")
         ]
         self.checker = Checker(self)
         self.board = []
@@ -89,7 +87,6 @@ class Board:
         self.pinned_pieces = []
         self.ended_game = False
 
-        # Temporaire, pour montrer quelle case tu selectionnes
         self.selected_surf = pg.Surface((self.tile_size, self.tile_size), pg.SRCALPHA)
         self.selected_surf.set_alpha(128)
         self.selected_surf.fill((0, 255, 0))
@@ -152,7 +149,6 @@ class Board:
                 self.update_everything(index)
 
     def reset_screen(self):
-        print(self.selected)
         for row in range(8):
             for col in range(8):
                 if row % 2 == 0:
@@ -209,13 +205,15 @@ class Board:
                         for key, hb in self.promotion_buttons_hb[self.object_promoted.color].items():
                             if hb.collidepoint(event.pos):
                                 return self.finish_promotion(key)
-                            pg.display.update()
-        self.update(index)
-        self.reset_screen()
-        self.piece_selected = None
-        self.next_turn()
-        self.in_check, self.possible_squares, self.pinned_pieces = self.checker.check_square_pins(self.get_king(self.turn).index, self.turn)
-        self.all_pieces_and_moves = self.generate_all_moves()
+        if not self.selecting_promotion:
+            self.update()
+            self.reset_screen()
+            self.piece_selected = None
+            self.next_turn()
+            self.in_check, self.possible_squares, self.pinned_pieces = \
+                self.checker.check_square_pins(self.get_king(self.turn).index, self.turn)
+            self.all_pieces_and_moves = self.generate_all_moves()
+        self.selecting_promotion = False
 
     def init_promotion(self, object_promoted: Piece, next_pos: (int, int)):
         self.object_promoted = object_promoted
@@ -231,10 +229,17 @@ class Board:
     def finish_promotion(self, tag: str):
         self.pieces.append(eval(tag)(self, self.object_promoted.index, self.object_promoted.color))
         self.pieces.remove(self.object_promoted)
-        self.selecting_promotion = False
         self.object_promoted = None
+        self.update()
+        self.reset_screen()
+        self.selecting_promotion = False
+        self.piece_selected = None
+        self.next_turn()
+        self.in_check, self.possible_squares, self.pinned_pieces = self.checker.check_square_pins(
+            self.get_king(self.turn).index, self.turn)
+        self.all_pieces_and_moves = self.generate_all_moves()
 
-    def update(self, move):
+    def update(self):
         self.targets = []
         # update the board
         self.board = []
@@ -264,7 +269,6 @@ class Board:
         all_pieces_and_moves = []
         self.ended_game = True
         for piece in self.pieces:
-            move_list = []
             if piece.color == self.turn:
                 move_list = piece.generate_move_available()
                 if move_list:
@@ -278,4 +282,3 @@ class Board:
         print("\t".join([str(col) for col in row]))
     print("\n")
     """
-

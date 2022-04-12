@@ -92,7 +92,8 @@ class App:
                                 self.ended_game = False
                                 self.screen.fill((49, 46, 43))
                                 self.board = Board(self.screen)
-                                self.board.update(None)
+                                self.board.update()
+                                self.board.reset_screen()
                                 pg.display.update()
 
             if self.board.ended_game:
